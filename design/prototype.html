@@ -1,0 +1,904 @@
+<title>Dukaan POS Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap">
+<style>
+/* Premium family: Quiet Tech. Cool graphite neutrals, one emerald accent, hairline rings, layered shadows.
+   Layout: phone prototype centered with a screen navigator rail; admin panel opens as a wide desktop frame. */
+:root{
+  --stage:#ECEDEB; --bg:#F7F7F5; --surface:#FFFFFF; --surface-2:#F0F0EE; --shell:#EEEEEB;
+  --fg:#141515; --fg-2:#5B5E62; --fg-3:#8B8E92;
+  --line:rgba(20,21,21,.08); --line-2:rgba(20,21,21,.14); --hi:rgba(255,255,255,.9);
+  --accent:#0E6B57; --accent-fg:#FFFFFF; --accent-soft:#E2F0EB; --accent-ink:#0A5444;
+  --red-bg:#FDEBEC; --red-fg:#9F2F2D; --blue-bg:#E1F3FE; --blue-fg:#1F6C9F;
+  --grn-bg:#EDF3EC; --grn-fg:#346538; --yel-bg:#FBF3DB; --yel-fg:#956400;
+  --bezel:#17181A; --glass:rgba(247,247,245,.82);
+  --sh:0 1px 2px -1px rgb(16 18 20/.06),0 8px 24px -10px rgb(16 18 20/.10),0 24px 64px -28px rgb(16 18 20/.14);
+  --ease:cubic-bezier(.16,1,.3,1); --r:16px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --stage:#050606; --bg:#0D0E0E; --surface:#151616; --surface-2:#1C1D1D; --shell:#101111;
+  --fg:#EDEEEC; --fg-2:#A1A4A7; --fg-3:#73767A;
+  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.15); --hi:rgba(255,255,255,.07);
+  --accent:#4CC3A3; --accent-fg:#052018; --accent-soft:#12302A; --accent-ink:#7FDCC2;
+  --red-bg:#341A1B; --red-fg:#F0928F; --blue-bg:#132A38; --blue-fg:#7CC1EE;
+  --grn-bg:#18281A; --grn-fg:#8FCB93; --yel-bg:#33290F; --yel-fg:#E5B65A;
+  --glass:rgba(13,14,14,.82);
+  --sh:0 1px 2px -1px rgb(0 0 0/.5),0 8px 24px -10px rgb(0 0 0/.6),0 24px 64px -28px rgb(0 0 0/.7);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --stage:#050606; --bg:#0D0E0E; --surface:#151616; --surface-2:#1C1D1D; --shell:#101111;
+  --fg:#EDEEEC; --fg-2:#A1A4A7; --fg-3:#73767A;
+  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.15); --hi:rgba(255,255,255,.07);
+  --accent:#4CC3A3; --accent-fg:#052018; --accent-soft:#12302A; --accent-ink:#7FDCC2;
+  --red-bg:#341A1B; --red-fg:#F0928F; --blue-bg:#132A38; --blue-fg:#7CC1EE;
+  --grn-bg:#18281A; --grn-fg:#8FCB93; --yel-bg:#33290F; --yel-fg:#E5B65A;
+  --glass:rgba(13,14,14,.82);
+  --sh:0 1px 2px -1px rgb(0 0 0/.5),0 8px 24px -10px rgb(0 0 0/.6),0 24px 64px -28px rgb(0 0 0/.7);
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--stage);color:var(--fg);font:14px/1.5 'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ic{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic.s{width:18px;height:18px}.ic.l{width:26px;height:26px}
+[dir=rtl] .flip{transform:scaleX(-1)}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}.num{font-variant-numeric:tabular-nums}
+
+/* page chrome */
+.page{max-width:1180px;margin:0 auto}
+.bar{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;margin-bottom:24px}
+.brand{display:flex;align-items:center;gap:12px}
+.mark{width:36px;height:36px;border-radius:11px;background:var(--fg);color:var(--bg);display:grid;place-items:center;font-weight:700;font-size:18px;letter-spacing:-.04em}
+.brand b{font-size:16px;letter-spacing:-.02em;display:block;line-height:1.2}.brand span{color:var(--fg-3);font-size:12.5px}
+.seg{display:inline-flex;padding:3px;border-radius:12px;background:var(--surface-2);box-shadow:0 0 0 1px var(--line)}
+.seg button{height:32px;padding-inline:12px;border-radius:9px;font-size:13px;color:var(--fg-2);display:inline-flex;align-items:center;gap:6px;transition:background .2s var(--ease),color .2s}
+.seg button.on{background:var(--surface);color:var(--fg);box-shadow:0 0 0 1px var(--line),0 1px 2px rgb(16 18 20/.06)}
+.ctrls{display:flex;gap:10px;flex-wrap:wrap}
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;align-items:start}
+.rail{position:sticky;top:20px;display:flex;flex-direction:column;gap:4px;max-height:calc(100dvh - 40px);overflow:auto;padding-right:4px}
+.rail h6{margin:18px 0 6px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-3);font-weight:500}
+.rail h6:first-child{margin-top:0}
+.rail button{height:34px;padding-inline:12px;border-radius:10px;color:var(--fg-2);font-size:13.5px;display:flex;align-items:center;transition:background .2s,color .2s}
+.rail button:hover{background:var(--surface-2);color:var(--fg)}
+.rail button.on{background:var(--surface);color:var(--fg);font-weight:500;box-shadow:0 0 0 1px var(--line)}
+.stage{display:flex;justify-content:center;min-width:0}
+@media (max-width:900px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:20px}
+  .rail{position:static;flex-direction:row;max-height:none;overflow-x:auto;padding:0 0 6px;gap:6px;scrollbar-width:none}
+  .rail h6{display:none}.rail button{flex:none;white-space:nowrap;box-shadow:0 0 0 1px var(--line)}
+}
+
+/* phone */
+.phone{width:min(390px,100%);height:812px;flex:none;border-radius:50px;padding:9px;background:var(--bezel);box-shadow:var(--sh),0 0 0 1px rgba(255,255,255,.06)}
+.dev{position:relative;height:100%;border-radius:41px;overflow:hidden;background:var(--bg);isolation:isolate}
+.sb{position:absolute;inset:0 0 auto 0;height:46px;display:flex;align-items:center;justify-content:space-between;padding-inline:30px 28px;z-index:6;background:var(--bg);font:600 13px 'Geist Mono',monospace;direction:ltr}
+.island{position:absolute;top:10px;left:50%;width:92px;height:26px;margin-left:-46px;border-radius:20px;background:#000;z-index:7}
+.batt{width:24px;height:12px;border-radius:4px;box-shadow:0 0 0 1.4px var(--fg-3);position:relative}.batt::after{content:"";position:absolute;inset:2px 6px 2px 2px;border-radius:2px;background:var(--fg)}
+.view{position:absolute;inset:46px 0 0 0;overflow-y:auto;overflow-x:hidden;padding:6px 20px 36px;scrollbar-width:none}
+.view::-webkit-scrollbar{display:none}
+.view.tabbed{bottom:78px}
+.view>*{animation:up .6s var(--ease) both;animation-delay:calc(var(--i,0)*55ms)}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.tabs{position:absolute;inset:auto 0 0 0;height:78px;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);padding-bottom:12px;z-index:5}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:52px;font-size:11px;color:var(--fg-3);transition:color .2s}
+.tab.on{color:var(--accent)}
+.tab.sell .fab{width:54px;height:54px;border-radius:19px;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;margin-top:-22px;box-shadow:0 0 0 5px var(--bg),0 10px 22px -8px var(--accent);transition:transform .2s var(--ease)}
+.tab.sell:active .fab{transform:scale(.95)}
+.tab.sell{color:var(--fg-2)}
+.ur{font-family:'Noto Naskh Arabic','Geist',system-ui,sans-serif;line-height:1.75}
+.ur *{letter-spacing:0!important}
+.toast{position:absolute;inset:auto 20px 96px;z-index:9;background:var(--fg);color:var(--bg);padding:12px 16px;border-radius:14px;font-size:13.5px;display:flex;gap:10px;align-items:center;animation:up .4s var(--ease) both;box-shadow:var(--sh)}
+
+/* type + atoms */
+.t1{font-size:27px;line-height:1.15;letter-spacing:-.03em;font-weight:600;text-wrap:balance}
+.t2{font-size:17px;letter-spacing:-.015em;font-weight:600}
+.sub{color:var(--fg-2);text-wrap:pretty;max-width:36ch}
+.mut{color:var(--fg-2)}.m3{color:var(--fg-3)}.sm{font-size:12.5px}.xs{font-size:11.5px}
+.lab{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-3);font-weight:500}
+.big{font-size:38px;line-height:1.05;letter-spacing:-.04em;font-weight:600;font-variant-numeric:tabular-nums}
+.col{display:flex;flex-direction:column;gap:16px}.gap8{gap:8px}.gap12{gap:12px}
+.rowx{display:flex;align-items:center;gap:12px}.sp{justify-content:space-between}.grow{flex:1;min-width:0}.wrap{flex-wrap:wrap}
+.card{background:var(--surface);border-radius:var(--r);box-shadow:0 0 0 1px var(--line),0 1px 2px -1px rgb(16 18 20/.05),0 10px 24px -14px rgb(16 18 20/.08)}
+.pad{padding:16px}
+.shell{padding:6px;border-radius:26px;background:var(--shell);box-shadow:0 0 0 1px var(--line)}
+.core{border-radius:20px;background:var(--surface);box-shadow:0 0 0 1px var(--line),inset 0 1px 0 var(--hi);padding:18px}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;margin-bottom:6px}
+.ib{width:44px;height:44px;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px var(--line);display:grid;place-items:center;flex:none;position:relative;transition:transform .2s var(--ease)}
+.ib:active{transform:scale(.96)}
+.dot{position:absolute;top:10px;inset-inline-end:11px;width:8px;height:8px;border-radius:50%;background:var(--red-fg);box-shadow:0 0 0 2px var(--surface)}
+.btn{height:52px;border-radius:14px;padding-inline:20px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .2s var(--ease),background .2s,box-shadow .2s;white-space:nowrap}
+.btn:active{transform:scale(.98)}
+.btn.pri{background:var(--accent);color:var(--accent-fg)}
+.btn.sec{background:var(--surface);box-shadow:0 0 0 1px var(--line-2)}
+.btn.ghost{color:var(--fg-2);font-weight:500}
+.btn.blk{width:100%}.btn.sm{height:40px;border-radius:12px;font-size:13px;padding-inline:14px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.chip{height:36px;padding-inline:14px;border-radius:999px;background:var(--surface);box-shadow:0 0 0 1px var(--line);font-size:13px;color:var(--fg-2);display:inline-flex;align-items:center;gap:6px;flex:none;transition:background .2s,color .2s}
+.chip.on{background:var(--fg);color:var(--bg);box-shadow:none}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-inline:-20px;padding-inline:20px}
+.chips::-webkit-scrollbar{display:none}
+.badge{display:inline-flex;align-items:center;gap:4px;height:22px;padding-inline:9px;border-radius:999px;font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.b-red{background:var(--red-bg);color:var(--red-fg)}.b-blue{background:var(--blue-bg);color:var(--blue-fg)}.b-grn{background:var(--grn-bg);color:var(--grn-fg)}.b-yel{background:var(--yel-bg);color:var(--yel-fg)}.b-acc{background:var(--accent-soft);color:var(--accent-ink)}
+.av{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-weight:600;font-size:14px;flex:none}
+.li{display:flex;align-items:center;gap:12px;padding-block:13px;border-bottom:1px solid var(--line);min-height:62px;width:100%}
+.li:last-child{border-bottom:0}
+.field{display:flex;flex-direction:column;gap:7px}
+.field label{font-size:12.5px;color:var(--fg-2);font-weight:500}
+.inp{height:52px;border-radius:13px;background:var(--surface);box-shadow:0 0 0 1px var(--line-2);padding-inline:14px;border:0;width:100%;transition:box-shadow .2s}
+.inp:focus{outline:0;box-shadow:0 0 0 2px var(--accent)}
+.inwrap{display:flex;align-items:center;gap:10px;height:52px;border-radius:13px;background:var(--surface);box-shadow:0 0 0 1px var(--line-2);padding-inline:14px}
+.inwrap input{border:0;background:none;flex:1;min-width:0;height:100%}.inwrap input:focus{outline:0}
+.inwrap:focus-within{box-shadow:0 0 0 2px var(--accent)}
+.sw{width:46px;height:28px;border-radius:99px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line-2);position:relative;flex:none;transition:background .25s}
+.sw::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgb(0 0 0/.25);transition:transform .25s var(--ease)}
+.sw.on{background:var(--accent)}.sw.on::after{transform:translateX(18px)}[dir=rtl] .sw.on::after{transform:translateX(-18px)}
+.prog{display:flex;gap:5px;margin-bottom:18px}.prog i{flex:1;height:4px;border-radius:4px;background:var(--line-2)}.prog i.on{background:var(--accent)}
+.hr{height:1px;background:var(--line);border:0;margin:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr)}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tile{background:var(--surface);border-radius:16px;box-shadow:0 0 0 1px var(--line);padding:16px 14px;display:flex;flex-direction:column;gap:12px;align-items:flex-start;min-height:104px;position:relative;transition:box-shadow .2s,transform .2s var(--ease)}
+.tile:active{transform:scale(.98)}
+.tile.on{box-shadow:0 0 0 2px var(--accent);background:var(--accent-soft)}
+.tile .tk{position:absolute;top:10px;inset-inline-end:10px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-fg);display:none;place-items:center}
+.tile.on .tk{display:grid}
+.tile .ti{width:40px;height:40px;border-radius:12px;background:var(--surface-2);display:grid;place-items:center}
+.tile.on .ti{background:var(--surface);color:var(--accent)}
+.qa{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px;color:var(--fg-2);text-align:center}
+.qa i{width:56px;height:56px;border-radius:18px;background:var(--surface);box-shadow:0 0 0 1px var(--line);display:grid;place-items:center;color:var(--fg);transition:transform .2s var(--ease)}
+.qa:active i{transform:scale(.95)}
+.stat{padding:14px 12px;display:flex;flex-direction:column;gap:2px}.stat+.stat{border-inline-start:1px solid var(--line)}
+.bars{display:flex;align-items:flex-end;gap:7px;height:76px}
+.bars i{flex:1;border-radius:6px 6px 3px 3px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line);transition:height .6s var(--ease)}
+.bars i.hot{background:var(--accent);box-shadow:none}
+.bl{display:flex;gap:7px;margin-top:6px}.bl span{flex:1;text-align:center;font-size:10.5px;color:var(--fg-3)}
+.pg{display:flex;flex-direction:column;gap:8px}
+.pgm{height:8px;border-radius:8px;background:var(--surface-2);overflow:hidden}.pgm i{display:block;height:100%;border-radius:8px;background:var(--accent)}
+.pgm.warn i{background:var(--yel-fg)}.pgm.bad i{background:var(--red-fg)}
+.stepper{display:inline-flex;align-items:center;border-radius:12px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line)}
+.stepper button{width:38px;height:38px;display:grid;place-items:center}.stepper b{min-width:24px;text-align:center;font-variant-numeric:tabular-nums}
+.sticky{position:sticky;bottom:-36px;margin:0 -20px -36px;padding:14px 20px 28px;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);animation:none!important}
+.pp{position:relative;width:236px;margin-inline:auto;background:#FCFCFA;color:#1a1a1a;font:12px/1.5 'Geist Mono',monospace;padding:18px 14px 26px;box-shadow:0 1px 2px rgb(0 0 0/.08),0 14px 30px -14px rgb(0 0 0/.25);clip-path:polygon(0 0,100% 0,100% calc(100% - 7px),95% 100%,90% calc(100% - 7px),85% 100%,80% calc(100% - 7px),75% 100%,70% calc(100% - 7px),65% 100%,60% calc(100% - 7px),55% 100%,50% calc(100% - 7px),45% 100%,40% calc(100% - 7px),35% 100%,30% calc(100% - 7px),25% 100%,20% calc(100% - 7px),15% 100%,10% calc(100% - 7px),5% 100%,0 calc(100% - 7px));direction:ltr;text-align:left}
+.pp .c{text-align:center}.pp .d{border-top:1px dashed #999;margin:8px 0}.pp .r{display:flex;justify-content:space-between;gap:8px}.pp b{font-weight:600}
+.cam{position:relative;height:440px;border-radius:24px;background:#0A0B0B;overflow:hidden;margin-bottom:16px;box-shadow:0 0 0 1px var(--line)}
+.cam .fr{position:absolute;inset:92px 44px;}
+.cam .fr i{position:absolute;width:34px;height:34px;border:3px solid #fff;border-radius:6px}
+.cam .fr i:nth-child(1){top:0;left:0;border-right:0;border-bottom:0}.cam .fr i:nth-child(2){top:0;right:0;border-left:0;border-bottom:0}
+.cam .fr i:nth-child(3){bottom:0;left:0;border-right:0;border-top:0}.cam .fr i:nth-child(4){bottom:0;right:0;border-left:0;border-top:0}
+.cam .ln{position:absolute;left:12px;right:12px;height:2px;background:#4CC3A3;box-shadow:0 0 14px 2px rgba(76,195,163,.55);animation:scan 2.4s var(--ease) infinite alternate}
+@keyframes scan{from{top:8px}to{top:calc(100% - 10px)}}
+.cam .hint{position:absolute;inset:auto 0 22px;text-align:center;color:#d8dad9;font-size:13px}
+.pay{display:flex;flex-direction:column;gap:8px;align-items:flex-start;padding:14px;border-radius:16px;background:var(--surface);box-shadow:0 0 0 1px var(--line);min-height:84px;transition:box-shadow .2s,background .2s}
+.pay.on{box-shadow:0 0 0 2px var(--accent);background:var(--accent-soft)}
+
+/* admin */
+.adm{width:100%;max-width:880px;background:var(--surface);border-radius:20px;box-shadow:var(--sh),0 0 0 1px var(--line);display:grid;grid-template-columns:196px minmax(0,1fr);min-height:700px;overflow:hidden}
+.adm aside{background:var(--shell);padding:20px 12px;border-inline-end:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.adm aside button{height:38px;padding-inline:12px;border-radius:10px;color:var(--fg-2);display:flex;align-items:center;gap:10px;font-size:13.5px}
+.adm aside button.on{background:var(--surface);color:var(--fg);font-weight:500;box-shadow:0 0 0 1px var(--line)}
+.adm main{padding:26px 28px;min-width:0;display:flex;flex-direction:column;gap:22px}
+.adm table{width:100%;border-collapse:collapse;font-size:13px}
+.adm th{text-align:start;font-weight:500;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.adm td{padding:13px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.note{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--accent-soft);color:var(--accent-ink);font-size:13px;animation:up .4s var(--ease) both}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kp button{height:54px;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px var(--line);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;display:grid;place-items:center;transition:transform .15s var(--ease),background .15s}
+.kp button:active{transform:scale(.96);background:var(--surface-2)}
+.ckb{width:26px;height:26px;border-radius:8px;box-shadow:0 0 0 1.5px var(--line-2);display:grid;place-items:center;flex:none;color:var(--accent-fg)}
+.ckb.on{background:var(--accent);box-shadow:none}
+.wa{background:var(--surface-2);border-radius:18px;padding:14px;box-shadow:inset 0 0 0 1px var(--line)}
+.bub{background:var(--accent-soft);color:var(--fg);border-radius:14px 14px 4px 14px;padding:12px 14px;margin-inline-start:auto;max-width:94%;line-height:1.6}
+.doc{background:#fff;color:#1a1a1a;border-radius:8px;padding:18px;font-size:13px;box-shadow:var(--sh);direction:ltr;text-align:left}
+.st{width:100%;border-collapse:collapse;font-size:12px}.st th{text-align:left;color:#777;font-weight:500;padding:6px 0;border-bottom:1px solid #ddd}.st td{padding:7px 0;border-bottom:1px solid #eee}
+.view.na>*{animation:none}
+.sheet{position:sticky;bottom:-36px;margin:18px -20px -36px;padding:10px 20px 30px;background:var(--surface);border-radius:26px 26px 0 0;box-shadow:0 -1px 0 var(--line),0 -18px 40px -18px rgb(16 18 20/.25);display:flex;flex-direction:column;gap:12px;animation:none!important}
+.sheet.ios{border-radius:34px 34px 0 0}
+.grab{width:40px;height:4px;border-radius:4px;background:var(--line-2);align-self:center}
+.spin{width:38px;height:38px;border-radius:50%;border:3px solid var(--line-2);border-top-color:var(--accent);animation:rot .8s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+@keyframes fill{from{width:0}to{width:100%}}
+textarea.inp{resize:none}
+.tw{overflow-x:auto;border-radius:14px;box-shadow:0 0 0 1px var(--line)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);border-radius:16px;box-shadow:0 0 0 1px var(--line)}
+.kpis>div{padding:16px 18px}.kpis>div+div{border-inline-start:1px solid var(--line)}
+.hbar{display:grid;grid-template-columns:110px 1fr 44px;align-items:center;gap:12px;font-size:13px}
+pre.json{background:var(--surface-2);border-radius:14px;padding:16px;font:12px/1.6 'Geist Mono',monospace;overflow:auto;margin:0;box-shadow:inset 0 0 0 1px var(--line)}
+@media (max-width:720px){
+  .adm{grid-template-columns:minmax(0,1fr)}.adm aside{flex-direction:row;overflow-x:auto;border-inline-end:0;border-bottom:1px solid var(--line)}
+  .adm aside button{flex:none}.adm main{padding:20px 16px}.kpis{grid-template-columns:1fr 1fr}.kpis>div:nth-child(3){border-inline-start:0}.kpis>div:nth-child(n+3){border-top:1px solid var(--line)}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+
+<div class="page">
+  <div class="bar">
+    <div class="brand"><div class="mark">D</div><div><b>Dukaan</b><span>Phase 0 prototype, sample data</span></div></div>
+    <div class="ctrls">
+      <div class="seg" role="group" aria-label="App language"><button data-act="lang" data-arg="en" id="l-en">English</button><button data-act="lang" data-arg="ur" id="l-ur">اردو</button></div>
+      <div class="seg" role="group" aria-label="Phone"><button data-act="os" data-arg="android" id="o-android">Android</button><button data-act="os" data-arg="ios" id="o-ios">iOS</button></div>
+      <div class="seg" role="group" aria-label="Theme"><button data-act="theme" data-arg="light" id="t-light">Light</button><button data-act="theme" data-arg="dark" id="t-dark">Dark</button></div>
+    </div>
+  </div>
+  <div class="layout">
+    <nav class="rail" id="rail" aria-label="Screens"></nav>
+    <div class="stage" id="stage"></div>
+  </div>
+</div>
+
+<script>
+const S={lang:'en',screen:'lang',cat:'bakery',tg:{barcode:false,expiry:true},cart:[{id:1,q:1},{id:2,q:2},{id:3,q:1}],disc:0,cust:null,mode:'cash',recv:null,
+  printer:false,plan:'standard',yearly:false,period:'week',stockTab:'low',kTab:'cust',led:1,scanN:0,scan:'idle',pf:'all',sf:'all',draftCode:'',
+  tog:{profit:false,del:false,price:true,wel:true,att:true,sms:false,catOn:true,cprice:true,cord:true,cdel:false,loy:true,bka:true,nlow:true,nsum:true,nsnd:false,lock:false,apcat:false,apxl:true},os:'android',sub:{st:'trial',plan:'standard'},buy:'sheet',buyOut:'success',ctx:'onboard',evf:'all',shf:'all',shr:'7',shopId:1,anote:'',pt:'cust',od:'they',rg:'got',rm:'Cash',tone:0,stp:'30',held:[{t:'10:52',c:3,items:[{id:8,q:4},{id:10,q:2}]}],sp:{cash:0,jazz:0,khata:0},spA:'cash',adj:{id:3,type:'add',q:10,why:'Recount'},pu:[{id:3,q:50,c:141},{id:5,q:20,c:376}],pay2:'credit',poOff:[],expT:0,expN:0,ecat:'Rent',efrom:'Cash',role:'cashier',ord:{},loy:{earn:1,red:10},bk:'idle',faq:-1,pm:'jazz',slip:'none',slipPh:false,rc:{paper:58,name:'RASHID GENERAL STORE',addr:'Main Market, Gulberg, Lahore 0300 1234567',foot:'',lang:'both',logo:true,bal:true,auto:false,copies:1},ret:{},rfm:'cash',rfr:'Wrong item',pd:1,wi:0,editId:0,amt:'',rej:-1,rejWhy:'',noteOpen:false,tpk:'bakery',tv:{},pays:{},adminOk:{},toast:''};
+const T=(e,u)=>S.lang==='ur'?u:e;
+const rs=n=>'Rs '+Math.round(n).toLocaleString('en-IN');
+const $=s=>document.querySelector(s);
+
+/* icons */
+const IC={home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',
+cart:'<path d="M3 4h2l2.2 11h10.6L20 7H6.2"/><circle cx="9" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/>',
+book:'<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/>',
+box:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',
+grid:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+scan:'<path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M4 12h16"/>',
+search:'<circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/>',plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',
+check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',chev:'<path d="M9 5l7 7-7 7"/>',back:'<path d="M15 5l-7 7 7 7"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',
+bell:'<path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 21h4"/>',
+printer:'<path d="M7 9V4h10v5"/><path d="M7 17H5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2"/><path d="M7 14h10v6H7z"/>',
+chat:'<path d="M4 5h16v11H9l-5 4z"/>',phone:'<rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 18h2"/>',
+store:'<path d="M4 9l1.5-5h13L20 9"/><path d="M4 9a2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 6 0 2.5 2.5 0 0 0 5 0"/><path d="M5 11v9h14v-9M10 20v-5h4v5"/>',
+chart:'<path d="M4 20V4M4 20h16M8 16v-5M13 16V8M18 16v-8"/>',
+wallet:'<path d="M4 7a2 2 0 0 1 2-2h12v4"/><path d="M4 7v11a2 2 0 0 0 2 2h14v-4"/><path d="M4 7h14a2 2 0 0 1 2 2v3M20 12h-4a2 2 0 0 0 0 4h4z"/>',
+user:'<circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/>',
+users:'<circle cx="9" cy="9" r="3.5"/><path d="M2.5 19a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="8" r="2.5"/><path d="M17 13a5 5 0 0 1 4.5 5"/>',
+tag:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/>',
+truck:'<path d="M2 6h11v10H2zM13 9h4l3 3v4h-7"/><circle cx="6" cy="18" r="1.8"/><circle cx="16" cy="18" r="1.8"/>',
+receipt:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
+arrow:'<path d="M7 17L17 7M8 7h9v9"/>',alert:'<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/>',
+cash:'<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>',
+bank:'<path d="M3 9l9-5 9 5M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>',
+barcode:'<path d="M4 5v14M7 5v14M11 5v14M14 5v14M17 5v14M20 5v14"/>',flash:'<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>',
+down:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
+pause:'<path d="M8 5v14M16 5v14"/>',pct:'<path d="M6 18L18 6"/><circle cx="7.5" cy="7.5" r="1.4"/><circle cx="16.5" cy="16.5" r="1.4"/>',
+bread:'<path d="M5 11a4 4 0 0 1 3-6h8a4 4 0 0 1 3 6v8H5z"/><path d="M9 11v3M13 11v3"/>',
+cup:'<path d="M6 8h12l-1.5 12h-9z"/><path d="M5 8h14M9 4h6"/>',shoe:'<path d="M3 16c4 0 5-4 5-8l3 3h4l5 3v4H3z"/>',
+shirt:'<path d="M8 4l-5 3 2 4 3-1v10h8V10l3 1 2-4-5-3a4 4 0 0 1-8 0z"/>',
+leaf:'<path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19c3-5 6-8 10-10"/>',
+pill:'<path d="M9 15l6-6"/><path d="M4.5 13.5a3.5 3.5 0 0 0 5 5l9-9a3.5 3.5 0 0 0-5-5z"/>',
+wrench:'<path d="M14 6a4 4 0 0 0 5 5l-9 9-3-3 9-9z"/>',bolt:'<path d="M4 12h4l2-6 4 12 2-6h4"/>',
+cal:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',link:'<path d="M10 14a4 4 0 0 0 5.6 0l3-3a4 4 0 0 0-5.6-5.6l-1 1"/><path d="M14 10a4 4 0 0 0-5.6 0l-3 3a4 4 0 0 0 5.6 5.6l1-1"/>',
+star:'<path d="M12 4l2.3 5 5.4.6-4 3.7 1.1 5.4L12 16l-4.8 2.7 1.1-5.4-4-3.7 5.4-.6z"/>',
+cloud:'<path d="M7 18a4 4 0 0 1-.5-8A5.5 5.5 0 0 1 17 8.5 4.5 4.5 0 0 1 17 18z"/>',
+sun:'<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/>',
+help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/>',
+list:'<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',dots:'<path d="M5 12h.01M12 12h.01M19 12h.01"/>'};
+const ic=(n,c='')=>`<svg class="ic ${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const sprite='<svg width="0" height="0" style="position:absolute" aria-hidden="true">'+Object.entries(IC).map(([k,v])=>`<symbol id="i-${k}" viewBox="0 0 24 24">${v}</symbol>`).join('')+'</svg>';
+
+/* data (all sample) */
+const P=[
+{id:1,n:'Atta 10kg',ur:'آٹا 10 کلو',p:1450,c:1320,s:34,min:15,code:'8961001000011'},
+{id:2,n:'Cooking Oil 1L',ur:'کوکنگ آئل 1 لیٹر',p:540,c:492,s:58,min:20,code:'8961001000028'},
+{id:3,n:'Sugar 1kg',ur:'چینی 1 کلو',p:155,c:141,s:12,min:25,code:'8961001000035'},
+{id:4,n:'Basmati Rice 5kg',ur:'باسمتی چاول 5 کلو',p:1850,c:1690,s:42,min:12,code:'8961001000042'},
+{id:5,n:'Tea Pack 190g',ur:'چائے 190 گرام',p:420,c:376,s:7,min:15,code:'8961001000059'},
+{id:6,n:'Daal Chana 1kg',ur:'دال چنا 1 کلو',p:330,c:296,s:26,min:10,code:'8961001000066'},
+{id:7,n:'Milk Pack 1L',ur:'دودھ 1 لیٹر',p:290,c:262,s:18,min:12,code:'8961001000073',exp:2},
+{id:8,n:'Biscuit Family Pack',ur:'بسکٹ فیملی پیک',p:90,c:76,s:60,min:20,code:'8961001000080'},
+{id:9,n:'Bath Soap',ur:'صابن',p:120,c:101,s:3,min:12,code:'8961001000097'},
+{id:10,n:'Salt 800g',ur:'نمک 800 گرام',p:60,c:48,s:45,min:10,code:'8961001000103'}];
+const pn=p=>S.lang==='ur'?p.ur:p.n;
+const C=[
+{id:1,n:'Ahmed Raza',ur:'احمد رضا',d:12400,last:'12 Nov',area:'Gulberg'},
+{id:2,n:'Bilal Karyana',ur:'بلال کریانہ',d:38900,last:'10 Nov',area:'Model Town'},
+{id:3,n:'Hina Tariq',ur:'حنا طارق',d:2150,last:'14 Nov',area:'Johar Town'},
+{id:4,n:'Fatima Store',ur:'فاطمہ اسٹور',d:21000,last:'02 Nov',area:'Iqbal Town'},
+{id:5,n:'Nadia Khan',ur:'نادیہ خان',d:6500,last:'08 Nov',area:'Gulberg'},
+{id:6,n:'Usman Ali',ur:'عثمان علی',d:0,last:'13 Nov',area:'Wapda Town'}];
+const cn=c=>S.lang==='ur'?c.ur:c.n;
+const LED=[['22 Oct','Sale #0981',3200],['28 Oct','Sale #0996',2300],['03 Nov','Sale #1018',6100],['08 Nov','Payment, cash',-3000],['12 Nov','Sale #1042',3800]];
+const CATS=[
+{k:'grocery',n:['Grocery','کریانہ'],i:'cart',bc:1,ex:1,mode:['Sell by piece, kg and carton','پیس، کلو اور کارٹن میں فروخت'],st:['Rice, Oil, Sugar, Tea, Dairy, Snacks','چاول، تیل، چینی، چائے، ڈیری، اسنیکس'],un:'pcs · kg · dozen · carton',sp:['Supplier orders and reorder list','سپلائر آرڈر اور ری آرڈر فہرست'],cnt:42},
+{k:'bakery',n:['Bakery','بیکری'],i:'bread',bc:0,ex:1,mode:['Sell by weight or piece','وزن یا پیس کے حساب سے فروخت'],st:['Bread, Cakes, Biscuits, Sweets, Snacks','بریڈ، کیک، بسکٹ، مٹھائی، اسنیکس'],un:'pcs · kg · dozen · box',sp:['Quick-tap item grid with photos','تصویروں والا فوری ٹیپ گرڈ'],cnt:28},
+{k:'milk',n:['Milk and Dairy','دودھ دہی'],i:'cup',bc:0,ex:1,mode:['Sell by litre and kg','لیٹر اور کلو میں فروخت'],st:['Milk, Yogurt, Butter, Cream, Eggs','دودھ، دہی، مکھن، کریم، انڈے'],un:'litre · kg · pcs',sp:['Daily customers with fixed litres','روزانہ گاہک اور مقررہ لیٹر'],cnt:14},
+{k:'shoes',n:['Shoes','جوتے'],i:'shoe',bc:1,ex:0,mode:['Sell by pair with size','سائز کے ساتھ جوڑی میں فروخت'],st:['Men, Women, Kids, Sports, Sandals','مردانہ، زنانہ، بچے، اسپورٹس، چپل'],un:'pair',sp:['Size and colour variants','سائز اور رنگ کی اقسام'],cnt:20},
+{k:'garments',n:['Garments','کپڑے'],i:'shirt',bc:1,ex:0,mode:['Sell by piece and metre','پیس اور میٹر میں فروخت'],st:['Unstitched, Ready-made, Kids, Fabric','ان سلے، تیار، بچے، کپڑا'],un:'pcs · metre · suit',sp:['Size and colour variants','سائز اور رنگ کی اقسام'],cnt:24},
+{k:'fruit',n:['Fruit and Veg','فروٹ سبزی'],i:'leaf',bc:0,ex:0,mode:['Sell by weight, rate changes daily','وزن پر فروخت، روزانہ ریٹ تبدیل'],st:['Fruit, Vegetables, Leafy, Dry fruit','فروٹ، سبزی، ساگ، خشک میوہ'],un:'kg · dozen · piece',sp:['One-tap daily rate update','ایک ٹیپ میں روزانہ ریٹ اپڈیٹ'],cnt:36},
+{k:'pharmacy',n:['Pharmacy','میڈیکل اسٹور'],i:'pill',bc:1,ex:1,mode:['Sell by strip, box and piece','پتہ، ڈبہ اور پیس میں فروخت'],st:['Tablets, Syrups, Injections, Care','گولیاں، شربت، انجیکشن، کیئر'],un:'strip · box · bottle',sp:['Batch and expiry on every item','ہر آئٹم پر بیچ اور ایکسپائری'],cnt:60},
+{k:'mobile',n:['Mobile Shop','موبائل شاپ'],i:'phone',bc:1,ex:0,mode:['Sell with IMEI or serial','آئی ایم ای آئی کے ساتھ فروخت'],st:['Phones, Covers, Chargers, Cards','فون، کور، چارجر، کارڈز'],un:'pcs',sp:['IMEI, warranty and repair slips','آئی ایم ای آئی، وارنٹی، مرمت'],cnt:18},
+{k:'hardware',n:['Hardware','ہارڈویئر'],i:'wrench',bc:1,ex:0,mode:['Sell by piece, foot and kg','پیس، فٹ اور کلو میں فروخت'],st:['Pipes, Paint, Tools, Electric, Fittings','پائپ، رنگ، اوزار، بجلی، فٹنگ'],un:'pcs · foot · kg · bag',sp:['Contractor khata with credit limits','ٹھیکیدار کھاتہ اور کریڈٹ حد'],cnt:34},
+{k:'other',n:['Other','دیگر'],i:'grid',bc:0,ex:0,mode:['Simple sale by piece','پیس کے حساب سے سادہ فروخت'],st:['General items','عمومی اشیاء'],un:'pcs · kg',sp:['Everything optional, turn on what you need','سب اختیاری، جو چاہیں آن کریں'],cnt:0}];
+const cat=()=>CATS.find(c=>c.k===S.cat);
+const DAYS={today:{l:['9','10','11','12','1','2','3','4','5'],v:[2.1,4.8,7.2,5.5,9,6.4,8.1,5.2,0.2],max:10,unit:'k'},
+week:{l:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],v:[31.2,28.4,36.9,33.1,41.7,43.1,48.3],max:50,unit:'k'},
+month:{l:['W1','W2','W3','W4'],v:[212,238,226,251],max:300,unit:'k'}};
+const KPI={today:[48320,7860,5200,12400],week:[262700,41200,28900,38000],month:[927000,148000,96000,141000]};
+
+/* ui helpers */
+const hd=(title,back,right='')=>`<div class="hd">${back?`<button class="ib" data-go="${back}" aria-label="${T('Back','واپس')}">${ic('back','flip')}</button>`:'<span></span>'}<div class="t2 grow" style="text-align:center">${title}</div>${right||'<span style="width:44px"></span>'}</div>`;
+const btn=(txt,go,cls='pri',extra='')=>`<button class="btn ${cls} blk" data-go="${go}" ${extra}>${txt}</button>`;
+const sw=(k,on)=>`<button class="sw ${on?'on':''}" role="switch" aria-checked="${!!on}" data-act="tog" data-arg="${k}"></button>`;
+const prog=n=>`<div class="prog">${Array.from({length:8},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>`;
+const ini=n=>n.split(' ').map(w=>w[0]).slice(0,2).join('');
+const tints=['b-blue','b-grn','b-yel','b-acc','b-red'];
+const av=(n,i)=>`<div class="av ${tints[i%5]}">${ini(n)}</div>`;
+const cartCalc=()=>{const sub=S.cart.reduce((a,l)=>a+P.find(p=>p.id===l.id).p*l.q,0);const d=S.disc<0?Math.round(sub*-S.disc/100):S.disc;return{sub,d,tot:Math.max(0,sub-d),n:S.cart.reduce((a,l)=>a+l.q,0)}};
+const totalDue=()=>C.reduce((a,c)=>a+c.d,0);
+
+/* ---------- screens ---------- */
+const SC={};
+SC.lang=()=>({bare:1,h:`${prog(1)}
+ <div class="col" style="gap:28px;padding-top:28px">
+  <div class="mark" style="width:56px;height:56px;border-radius:17px;font-size:28px">D</div>
+  <div class="col gap8"><h1 class="t1">${T('Welcome to Dukaan','دکان میں خوش آمدید')}</h1><p class="sub">${T('Run your shop from your phone. Sales, khata, stock and bills in one place.','اپنی دکان موبائل سے چلائیں۔ فروخت، کھاتہ، اسٹاک اور بل ایک جگہ۔')}</p></div>
+  <div class="col gap12"><div class="lab">${T('Choose your language','زبان منتخب کریں')}</div>
+   <button class="tile ${S.lang==='en'?'on':''}" style="min-height:76px;flex-direction:row;align-items:center" data-act="lang" data-arg="en"><span class="ti">${ic('globe')}</span><span class="grow"><b class="t2" style="display:block">English</b><span class="m3 sm">Left to right</span></span><i class="tk">${ic('check','s')}</i></button>
+   <button class="tile ${S.lang==='ur'?'on':''}" style="min-height:76px;flex-direction:row;align-items:center" data-act="lang" data-arg="ur"><span class="ti">${ic('globe')}</span><span class="grow"><b class="t2" style="display:block;font-family:'Noto Naskh Arabic'">اردو</b><span class="m3 sm" style="font-family:'Noto Naskh Arabic'">دائیں سے بائیں</span></span><i class="tk">${ic('check','s')}</i></button></div>
+  ${btn(T('Continue','جاری رکھیں'),'phone')}</div>`});
+SC.phone=()=>({bare:1,h:`${hd('', 'lang')}${prog(2)}
+ <div class="col" style="gap:24px;padding-top:8px"><div class="col gap8"><h1 class="t1">${T('Your mobile number','آپ کا موبائل نمبر')}</h1><p class="sub">${T('We will send a 6 digit code by SMS. No password needed.','ہم ایس ایم ایس پر 6 ہندسوں کا کوڈ بھیجیں گے۔ پاس ورڈ کی ضرورت نہیں۔')}</p></div>
+  <div class="field"><label for="ph">${T('Mobile number','موبائل نمبر')}</label><div class="inwrap" style="direction:ltr"><b>+92</b><span class="m3">|</span><input id="ph" inputmode="tel" value="300 1234567" aria-label="Mobile number"></div></div>
+  ${btn(T('Send code','کوڈ بھیجیں'),'otp')}</div>`});
+SC.otp=()=>({bare:1,h:`${hd('', 'phone')}${prog(2)}
+ <div class="col" style="gap:24px;padding-top:8px"><div class="col gap8"><h1 class="t1">${T('Enter the code','کوڈ درج کریں')}</h1><p class="sub">${T('Sent to','بھیجا گیا')} <span class="mono" dir="ltr">+92 300 1234567</span></p></div>
+  <div class="rowx" style="gap:8px;direction:ltr">${[4,8,2,9,1,3].map(d=>`<input class="inp mono" style="text-align:center;padding:0;font-size:20px;font-weight:600" maxlength="1" inputmode="numeric" value="${d}" aria-label="Digit" oninput="this.value&&this.nextElementSibling&&this.nextElementSibling.focus()">`).join('')}</div>
+  <div class="m3 sm">${T('Resend code in 0:24','0:24 میں دوبارہ بھیجیں')}</div>${btn(T('Verify','تصدیق کریں'),'shop')}</div>`});
+SC.shop=()=>({bare:1,h:`${hd('', 'otp')}${prog(3)}
+ <div class="col" style="gap:20px;padding-top:8px"><h1 class="t1">${T('About your shop','آپ کی دکان')}</h1>
+  <div class="field"><label for="sn">${T('Shop name','دکان کا نام')}</label><input class="inp" id="sn" value="Rashid General Store"></div>
+  <div class="field"><label for="on">${T('Owner name','مالک کا نام')}</label><input class="inp" id="on" value="Rashid Mehmood"></div>
+  <div class="field"><label for="ct">${T('City','شہر')}</label><select class="inp" id="ct"><option>Lahore</option><option>Karachi</option><option>Islamabad</option><option>Faisalabad</option><option>Multan</option><option>Peshawar</option></select></div>
+  <div class="field"><label>${T('Logo, optional','لوگو، اختیاری')}</label><button class="card rowx pad" style="border:0"><span class="av b-blue">${ic('plus')}</span><span class="mut">${T('Add shop logo','دکان کا لوگو شامل کریں')}</span></button></div>
+  ${btn(T('Continue','جاری رکھیں'),'category')}</div>`});
+SC.category=()=>({bare:1,h:`${hd('', 'shop')}${prog(4)}
+ <div class="col" style="gap:18px;padding-top:4px"><div class="col gap8"><h1 class="t1">${T('What do you sell?','آپ کیا بیچتے ہیں؟')}</h1><p class="sub">${T('We set the app up to fit your shop. You can change everything later.','ہم آپ کی دکان کے مطابق ایپ سیٹ کریں گے۔ بعد میں سب کچھ بدل سکتے ہیں۔')}</p></div>
+  <div class="grid2">${CATS.map(c=>`<button class="tile ${S.cat===c.k?'on':''}" data-act="cat" data-arg="${c.k}" aria-pressed="${S.cat===c.k}"><i class="tk">${ic('check','s')}</i><span class="ti">${ic(c.i)}</span><b>${T(c.n[0],c.n[1])}</b></button>`).join('')}</div>
+  <div class="sticky">${btn(T('Continue','جاری رکھیں'),'setup')}</div></div>`});
+SC.setup=()=>{const c=cat();const rows=[
+ ['store',T('Selling','فروخت'),T(...c.mode)],['tag',T('Starter categories','ابتدائی کیٹیگریز'),T(...c.st)],['list',T('Units','یونٹس'),c.un],
+ ['barcode',T('Barcode scanning','بارکوڈ اسکین'),null,'barcode'],['cal',T('Expiry alerts','ایکسپائری الرٹ'),null,'expiry'],
+ ['bolt',T('Made for you','آپ کے لیے'),T(...c.sp)],['printer',T('Receipt','رسید'),T('58mm, Urdu and English','58 ملی میٹر، اردو اور انگریزی')]];
+ return{bare:1,h:`${hd('', 'category')}${prog(5)}
+ <div class="col" style="gap:18px;padding-top:4px"><div class="col gap8"><h1 class="t1">${T(`Your ${c.n[0]} shop is ready`,`آپ کی ${c.n[1]} دکان تیار ہے`)}</h1><p class="sub">${c.cnt?T(`${c.cnt} starter items added. Turn anything on or off.`,`${c.cnt} ابتدائی آئٹمز شامل۔ جو چاہیں آن یا آف کریں۔`):T('Nothing added yet. Turn on what you need.','ابھی کچھ شامل نہیں۔ جو ضرورت ہو آن کریں۔')}</p></div>
+  <div class="card" style="padding:4px 16px">${rows.map((r,i)=>`<div class="li" style="animation:up .5s var(--ease) both;animation-delay:${i*90+150}ms"><span class="av" style="background:var(--surface-2);color:var(--accent)">${ic(r[0])}</span><div class="grow"><div style="font-weight:500">${r[1]}</div>${r[2]?`<div class="m3 sm">${r[2]}</div>`:''}</div>${r[3]?sw(r[3],S.tg[r[3]]):`<span style="color:var(--accent)">${ic('check','s')}</span>`}</div>`).join('')}</div>
+  ${btn(T('Looks good','ٹھیک ہے'),'plan')}</div>`}};
+SC.plan=()=>{const pr={basic:[500,5000],standard:[900,9000],pro:[1500,15000]};const sel=S.plan;
+ const P_=[['basic',T('Basic','بنیادی'),[T('1 user','1 صارف'),T('500 products','500 آئٹمز'),T('Receipts and khata','رسید اور کھاتہ')]],
+ ['standard',T('Standard','اسٹینڈرڈ'),[T('3 users','3 صارف'),T('Unlimited products','لامحدود آئٹمز'),T('Reports and WhatsApp bills','رپورٹس اور واٹس ایپ بل')]],
+ ['pro',T('Pro','پرو'),[T('10 users','10 صارف'),T('Online catalog link','آن لائن کیٹلاگ'),T('Excel export and backup','ایکسل ایکسپورٹ اور بیک اپ')]]];
+ return{bare:1,h:`${hd('', S.ctx==='onboard'?'setup':'subscription')}${S.ctx==='onboard'?prog(6):''}
+ <div class="col" style="gap:18px;padding-top:4px"><div class="col gap8"><h1 class="t1">${S.ctx==='onboard'?T('Start 14 days free','14 دن مفت شروع کریں'):T('Choose your plan','اپنا پلان چنیں')}</h1><p class="sub">${S.ctx==='onboard'?T('Pay with '+store()+'. You are charged after the trial. Cancel before it ends and pay nothing.',store()+' سے ادائیگی۔ ٹرائل کے بعد چارج ہوگا۔ پہلے منسوخ کریں تو کچھ نہیں۔'):T('Billed by '+store()+'. Changes apply right away, prorated.',store()+' بل کرتا ہے۔ تبدیلی فوراً، تناسب سے۔')}</p></div>
+  <div class="seg" style="align-self:flex-start"><button class="${S.yearly?'':'on'}" data-act="bill" data-arg="m">${T('Monthly','ماہانہ')}</button><button class="${S.yearly?'on':''}" data-act="bill" data-arg="y">${T('Yearly, 2 months free','سالانہ، 2 ماہ مفت')}</button></div>
+  ${P_.map(([k,n,f])=>{const std=k==='standard';const card=`<button class="${std?'core':'card pad'}" style="width:100%;${sel===k?'box-shadow:0 0 0 2px var(--accent)':''}" data-act="plan" data-arg="${k}" aria-pressed="${sel===k}"><div class="rowx sp"><b class="t2">${n}</b>${std?`<span class="badge b-acc">${T('Most chosen','مقبول ترین')}</span>`:''}</div><div style="margin-block:8px 10px"><span class="big" style="font-size:30px">${rs(pr[k][S.yearly?1:0])}</span><span class="m3"> / ${S.yearly?T('year','سال'):T('month','ماہ')}</span></div><div class="col gap8 sm mut">${f.map(x=>`<div class="rowx" style="gap:8px"><span style="color:var(--accent)">${ic('check','s')}</span>${x}</div>`).join('')}</div></button>`;
+   return std?`<div class="shell">${card}</div>`:card}).join('')}
+  <div class="m3 xs">${T('Prices shown by '+store()+' in your local currency. Subscription renews until cancelled.',store()+' آپ کی کرنسی میں قیمت دکھاتا ہے۔ منسوخ کرنے تک تجدید ہوتی ہے۔')}</div>
+  ${btn(S.ctx==='onboard'?T('Start free trial','مفت ٹرائل شروع کریں'):T('Continue','جاری رکھیں'),'pay-plan')}${S.ctx==='onboard'?`<button class="btn ghost blk" data-act="restore">${T('Restore purchases','خریداری بحال کریں')}</button>`:''}</div>`}};
+SC.printer=()=>({bare:1,h:`${hd('', 'plan')}${prog(8)}
+ <div class="col" style="gap:20px;padding-top:4px"><div class="col gap8"><h1 class="t1">${T('Connect your printer','پرنٹر جوڑیں')}</h1><p class="sub">${T('Turn on your 58mm pocket printer and keep it close to your phone.','اپنا 58 ملی میٹر پرنٹر آن کریں اور فون کے قریب رکھیں۔')}</p></div>
+  <div class="card" style="padding:4px 16px">${[['MPT-II 58mm','-48 dBm'],['Pocket Printer 5802','-61 dBm']].map((d,i)=>`<div class="li"><span class="av b-blue">${ic('printer')}</span><div class="grow"><b>${d[0]}</b><div class="m3 xs mono">${d[1]}</div></div>${i===0&&S.printer?`<span class="badge b-grn">${T('Connected','جڑ گیا')}</span>`:`<button class="btn sec sm" data-act="${i===0?'pair':'toast'}" data-arg="${T('Only the first device is paired in this prototype','پروٹو ٹائپ میں صرف پہلا ڈیوائس جڑتا ہے')}">${T('Connect','جوڑیں')}</button>`}</div>`).join('')}</div>
+  ${S.printer?`<button class="btn sec blk" data-act="toast" data-arg="${T('Test receipt sent','ٹیسٹ رسید بھیج دی گئی')}">${ic('printer','s')} ${T('Print test receipt','ٹیسٹ رسید پرنٹ کریں')}</button>`:''}
+  <div class="col gap8">${btn(T('Start selling','فروخت شروع کریں'),'home')}<button class="btn ghost blk" data-go="home">${T('Skip for now','ابھی چھوڑیں')}</button></div></div>`});
+
+/* app */
+SC.home=()=>{const d=DAYS.week;const hot=d.v.length-1;
+ return{tab:'home',h:`<div class="hd" style="margin-bottom:12px"><div class="rowx"><div class="av" style="background:var(--fg);color:var(--bg)">RG</div><div><div class="t2" style="line-height:1.25">${T('Assalam o Alaikum, Rashid','السلام علیکم، راشد')}</div><div class="m3 sm">${T('Rashid General Store','راشد جنرل اسٹور')} · ${T(cat().n[0],cat().n[1])}</div></div></div><button class="ib" data-go="alerts" aria-label="Alerts">${ic('bell')}<i class="dot"></i></button></div>
+ <div class="col" style="gap:18px">
+ ${subBanner()}<div class="shell"><div class="core"><div class="rowx sp"><span class="lab">${T('Today, 14 Nov','آج، 14 نومبر')}</span><span class="badge b-grn">${ic('arrow','s')} +12.1%</span></div>
+  <div class="rowx" style="align-items:baseline;gap:8px;margin-block:6px 16px"><div class="big">${rs(48320)}</div></div>
+  <div class="bars" role="img" aria-label="Sales last 7 days">${d.v.map((v,i)=>`<i class="${i===hot?'hot':''}" style="height:${v/d.max*100}%"></i>`).join('')}</div><div class="bl">${d.l.map(x=>`<span>${x}</span>`).join('')}</div></div></div>
+ <div class="card grid3"><div class="stat"><span class="m3 xs">${T('Cash in hand','نقد رقم')}</span><b class="num">${rs(21400)}</b></div><div class="stat"><span class="m3 xs">${T('Khata due','باقی کھاتہ')}</span><b class="num">${rs(totalDue())}</b></div><div class="stat"><span class="m3 xs">${T('Profit','منافع')}</span><b class="num">${rs(7860)}</b></div></div>
+ <div class="grid4"><button class="qa" data-go="sell"><i>${ic('cart')}</i>${T('New sale','نئی فروخت')}</button><button class="qa" data-go="scan"><i>${ic('scan')}</i>${T('Scan','اسکین')}</button><button class="qa" data-go="khata"><i>${ic('wallet')}</i>${T('Receive','وصولی')}</button><button class="qa" data-go="add-product"><i>${ic('plus')}</i>${T('Add item','آئٹم')}</button></div>
+ <div class="col gap8"><div class="rowx sp"><b class="t2">${T('Needs attention','توجہ درکار')}</b></div><div class="card" style="padding:2px 16px">
+  <button class="li" data-go="stock"><span class="av b-yel">${ic('box')}</span><div class="grow"><b>${T('3 items low on stock','3 آئٹمز کا اسٹاک کم')}</b><div class="m3 sm">${T('Sugar, Tea, Bath Soap','چینی، چائے، صابن')}</div></div>${ic('chev','s flip')}</button>
+  <button class="li" data-go="stock"><span class="av b-red">${ic('cal')}</span><div class="grow"><b>${T('Milk Pack expires in 2 days','دودھ 2 دن میں ایکسپائر')}</b><div class="m3 sm">${T('18 packs left','18 پیک باقی')}</div></div>${ic('chev','s flip')}</button>
+  <button class="li" data-go="khata"><span class="av b-blue">${ic('users')}</span><div class="grow"><b>${T('3 customers owe over 30 days','3 گاہک 30 دن سے زیادہ باقی')}</b><div class="m3 sm">${rs(72400)}</div></div>${ic('chev','s flip')}</button></div></div>
+ <div class="col gap8"><div class="rowx sp"><b class="t2">${T('Recent sales','حالیہ فروخت')}</b><button class="m3 sm" data-go="reports">${T('See all','سب دیکھیں')}</button></div><div class="card" style="padding:2px 16px">
+  ${[['#1048',T('Walk-in','عام گاہک'),T('Cash','نقد'),1450,'2 min'],['#1047',T('Hina Tariq','حنا طارق'),T('Khata','کھاتہ'),2150,'18 min'],['#1046',T('Walk-in','عام گاہک'),'JazzCash',890,'41 min'],['#1045',T('Walk-in','عام گاہک'),T('Cash','نقد'),340,'1 h']].map(r=>`<div class="li"><span class="av" style="background:var(--surface-2)">${ic('receipt')}</span><div class="grow"><b>${r[1]}</b><div class="m3 sm"><span class="mono">${r[0]}</span> · ${r[2]} · ${r[4]}</div></div><b class="num">${rs(r[3])}</b></div>`).join('')}</div></div></div>`}};
+
+SC.sell=()=>{const c=cartCalc();return{tab:'sell',h:`<div class="hd"><div class="t1" style="font-size:24px">${T('New sale','نئی فروخت')}</div><button class="ib" data-go="cart" aria-label="Cart">${ic('cart')}${c.n?`<i class="dot" style="background:var(--accent)"></i>`:''}</button></div>
+ <div class="col" style="gap:14px"><div class="rowx"><label class="inwrap grow">${ic('search','s')}<input placeholder="${T('Search or type name','نام تلاش کریں')}" aria-label="Search"></label><button class="ib" style="width:52px;height:52px;background:var(--fg);color:var(--bg)" data-go="scan" aria-label="Scan">${ic('scan')}</button></div>
+ <div class="chips"><button class="chip" data-go="weigh" style="color:var(--accent)">${ic('list','s')} ${T('Weigh item','وزن کریں')}</button>${[T('All','سب'),T('Flour and Rice','آٹا چاول'),T('Oil','تیل'),T('Dairy','ڈیری'),T('Snacks','اسنیکس')].map((x,i)=>`<span class="chip ${i?'':'on'}">${x}</span>`).join('')}</div>
+ <div class="grid2">${P.map(p=>{const q=(S.cart.find(l=>l.id===p.id)||{}).q||0;return`<button class="card pad col" style="gap:10px;align-items:stretch;min-height:122px;${q?'box-shadow:0 0 0 2px var(--accent)':''}" data-act="add" data-arg="${p.id}"><div class="rowx sp"><span class="av" style="width:36px;height:36px;border-radius:11px;background:var(--surface-2);font-size:12px">${ini(p.n)}</span>${q?`<span class="badge b-acc">${q}</span>`:''}</div><div style="font-weight:500;line-height:1.3">${pn(p)}</div><div class="rowx sp" style="margin-top:auto"><b class="num">${rs(p.p)}</b><span class="m3 xs">${p.s}</span></div></button>`}).join('')}</div>
+ <div class="sticky"><button class="btn pri blk" data-go="cart" ${c.n?'':'disabled'}><span>${c.n} ${T('items','آئٹمز')}</span><span style="opacity:.6">·</span><b class="num">${rs(c.tot)}</b><span style="margin-inline-start:auto">${T('View cart','کارٹ')}</span>${ic('chev','s flip')}</button></div></div>`}};
+SC.cart=()=>{const c=cartCalc();const cu=C.find(x=>x.id===S.cust);return{tab:'sell',h:`${hd(T('Cart','کارٹ'),'sell',`<button class="ib" data-act="clear" aria-label="Clear">${ic('x','s')}</button>`)}
+ <div class="col" style="gap:16px"><div class="card" style="padding:2px 16px">${S.cart.length?S.cart.map(l=>{const p=P.find(x=>x.id===l.id);return`<div class="li"><div class="grow"><b>${pn(p)}</b><div class="m3 sm num">${rs(p.p)}</div></div><div class="stepper"><button data-act="qty" data-arg="${p.id}:-1" aria-label="Less">${ic('minus','s')}</button><b>${l.q}</b><button data-act="qty" data-arg="${p.id}:1" aria-label="More">${ic('plus','s')}</button></div><b class="num" style="min-width:68px;text-align:end">${rs(p.p*l.q)}</b></div>`}).join(''):`<div class="pad m3" style="padding-block:30px;text-align:center">${T('Cart is empty. Scan or tap items to add.','کارٹ خالی ہے۔ آئٹم اسکین کریں یا ٹیپ کریں۔')}</div>`}</div>
+ <div class="col gap8"><div class="lab">${T('Customer','گاہک')}</div><div class="chips">${[[null,T('Walk-in','عام گاہک')],...C.slice(0,4).map(x=>[x.id,cn(x)])].map(([id,n])=>`<button class="chip ${S.cust===id?'on':''}" data-act="cust" data-arg="${id||0}">${n}</button>`).join('')}</div></div>
+ <div class="col gap8"><div class="lab">${T('Discount','رعایت')}</div><div class="chips">${[[0,T('None','کوئی نہیں')],[50,'Rs 50'],[100,'Rs 100'],[-5,'5%']].map(([v,n])=>`<button class="chip ${S.disc===v?'on':''}" data-act="disc" data-arg="${v}">${n}</button>`).join('')}</div></div>
+ <div class="card pad col gap8"><div class="rowx sp mut"><span>${T('Subtotal','ذیلی کل')}</span><span class="num">${rs(c.sub)}</span></div><div class="rowx sp mut"><span>${T('Discount','رعایت')}</span><span class="num">- ${rs(c.d)}</span></div><hr class="hr"><div class="rowx sp"><b class="t2">${T('Total','کل')}</b><b class="big" style="font-size:26px">${rs(c.tot)}</b></div></div>
+ ${S.held.length?`<button class="btn ghost blk" data-go="held">${ic('pause','s')} ${T('Held bills','روکے ہوئے بل')} (${S.held.length})</button>`:''}<div class="rowx"><button class="btn sec" style="flex:0 0 auto" data-act="hold">${ic('pause','s')} ${T('Hold','روکیں')}</button><button class="btn pri grow" data-go="pay" ${c.n?'':'disabled'}>${T('Pay','ادائیگی')} ${rs(c.tot)}</button></div></div>`}};
+SC.pay=()=>{const c=cartCalc();const cu=C.find(x=>x.id===S.cust);const M=[['cash',T('Cash','نقد'),'cash'],['jazz','JazzCash','phone'],['easy','Easypaisa','phone'],['bank',T('Bank','بینک'),'bank'],['khata',T('Khata','کھاتہ'),'book']];
+ const rec=S.recv??c.tot;const chg=Math.max(0,rec-c.tot);const needCust=S.mode==='khata'&&!cu;
+ return{tab:'sell',h:`${hd(T('Payment','ادائیگی'),'cart')}<div class="col" style="gap:18px">
+ <div class="col gap8" style="align-items:center;padding-block:10px"><span class="lab">${T('Amount to collect','وصول کرنی رقم')}</span><div class="big" style="font-size:46px">${rs(c.tot)}</div></div>
+ <div class="grid2">${M.map(m=>`<button class="pay ${S.mode===m[0]?'on':''}" data-act="mode" data-arg="${m[0]}" aria-pressed="${S.mode===m[0]}"><span style="color:${S.mode===m[0]?'var(--accent)':'var(--fg-2)'}">${ic(m[2])}</span><b>${m[1]}</b></button>`).join('')}</div>
+ ${S.mode==='cash'?`<div class="card pad col gap12"><div class="rowx sp"><span class="mut">${T('Received','وصول')}</span><b class="num t2">${rs(rec)}</b></div><div class="chips" style="margin-inline:0;padding-inline:0">${[c.tot,Math.ceil(c.tot/1000)*1000,Math.ceil(c.tot/1000)*1000+1000,10000].filter((v,i,a)=>a.indexOf(v)===i).map(v=>`<button class="chip ${rec===v?'on':''}" data-act="recv" data-arg="${v}">${rs(v)}</button>`).join('')}</div><hr class="hr"><div class="rowx sp"><span class="mut">${T('Change to return','واپس کرنی رقم')}</span><b class="num t2" style="color:var(--accent)">${rs(chg)}</b></div></div>`
+ :S.mode==='khata'?`<div class="card pad rowx">${cu?`${av(cn(cu),cu.id)}<div class="grow"><b>${cn(cu)}</b><div class="m3 sm">${T('Current due','موجودہ باقی')} ${rs(cu.d)} → ${rs(cu.d+c.tot)}</div></div>`:`<span class="av b-red">${ic('alert')}</span><div class="grow"><b>${T('Choose a customer','گاہک منتخب کریں')}</b><div class="m3 sm">${T('Khata needs a customer name','کھاتے کے لیے گاہک ضروری ہے')}</div></div><button class="btn sec sm" data-go="cart">${T('Choose','منتخب')}</button>`}</div>`
+ :`<div class="card pad rowx"><span class="av b-blue">${ic('shield')}</span><div class="grow"><b>${T('Customer pays to your number','گاہک آپ کے نمبر پر بھیجے گا')}</b><div class="m3 sm mono" dir="ltr">0300 1234567</div></div></div>`}
+ <button class="btn ghost blk" data-go="split">${ic('pct','s')} ${T('Split payment','ادائیگی تقسیم کریں')}</button>
+ ${btn(T('Confirm and print','تصدیق اور پرنٹ'),'receipt',needCust?'pri':'pri',needCust?'disabled':'')}</div>`}};
+SC.receipt=()=>{const c=cartCalc();const cu=C.find(x=>x.id===S.cust);return{tab:'sell',h:`<div class="col" style="gap:18px;padding-top:6px"><div class="col" style="align-items:center;gap:10px;text-align:center"><div class="av" style="width:56px;height:56px;border-radius:18px;background:var(--accent);color:var(--accent-fg)">${ic('check','l')}</div><h1 class="t1" style="font-size:24px">${T('Sale complete','فروخت مکمل')}</h1><div class="m3">${S.mode==='khata'?T('Added to khata','کھاتے میں درج'):T('Paid by','ادائیگی')+' '+({cash:T('cash','نقد'),jazz:'JazzCash',easy:'Easypaisa',bank:T('bank','بینک'),split:T('cash and khata','نقد اور کھاتہ')}[S.mode]||'')}</div></div>
+ <div class="pp"><div class="c"><b style="font-size:14px">RASHID GENERAL STORE</b><br>Main Market, Gulberg, Lahore<br>0300 1234567</div><div class="d"></div><div class="r"><span>Bill #1049</span><span>14 Nov 11:42</span></div>${cu?`<div>Customer: ${cu.n}</div>`:''}<div class="d"></div>
+ ${S.cart.map(l=>{const p=P.find(x=>x.id===l.id);return`<div>${p.n}</div><div class="r"><span>${l.q} x ${p.p}</span><span>${p.p*l.q}</span></div>`}).join('')}
+ <div class="d"></div>${c.d?`<div class="r"><span>Discount</span><span>-${c.d}</span></div>`:''}<div class="r" style="font-size:14px"><b>TOTAL</b><b>Rs ${c.tot}</b></div><div class="d"></div><div class="c">Shukriya! Phir tashreef layein<br><span style="font-family:'Noto Naskh Arabic';font-size:13px">شکریہ، دوبارہ تشریف لائیں</span></div></div>
+ <div class="grid2"><button class="btn sec" data-act="${S.printer?'toast':'toast'}" data-arg="${S.printer?T('Sent to MPT-II 58mm','MPT-II 58mm پر بھیجا گیا'):T('No printer connected. Set up in More.','پرنٹر نہیں جڑا۔ مزید میں سیٹ کریں۔')}">${ic('printer','s')} ${T('Print','پرنٹ')}</button><button class="btn sec" data-act="toast" data-arg="${T('WhatsApp opens with the bill','واٹس ایپ بل کے ساتھ کھلے گا')}">${ic('chat','s')} WhatsApp</button></div>
+ <button class="btn pri blk" data-act="newsale">${T('New sale','نئی فروخت')}</button></div>`}};
+
+SC.products=()=>{let L=P;if(S.pf==='low')L=P.filter(p=>p.s<=p.min);if(S.pf==='exp')L=P.filter(p=>p.exp);
+ return{tab:'prod',h:`<div class="hd"><div class="t1" style="font-size:24px">${T('Products','آئٹمز')}</div><button class="btn pri sm" data-go="add-product">${ic('plus','s')} ${T('Add','شامل')}</button></div>
+ <div class="col" style="gap:14px"><div class="seg" style="align-self:flex-start"><button class="on">${T('Items','آئٹمز')}</button><button data-go="stock">${T('Stock','اسٹاک')}</button></div>
+ <div class="rowx"><label class="inwrap grow">${ic('search','s')}<input placeholder="${T('Search name or barcode','نام یا بارکوڈ')}" aria-label="Search"></label><button class="ib" style="width:52px;height:52px" data-go="scan" aria-label="Scan">${ic('scan')}</button></div>
+ <div class="chips">${[['all',T('All','سب'),10],['low',T('Low stock','کم اسٹاک'),3],['exp',T('Expiring','ایکسپائری'),1]].map(f=>`<button class="chip ${S.pf===f[0]?'on':''}" data-act="pf" data-arg="${f[0]}">${f[1]} <span class="num" style="opacity:.6">${f[2]}</span></button>`).join('')}</div>
+ <div class="card" style="padding:2px 16px">${L.map((p,i)=>`<div class="li" data-act="pd" data-arg="${p.id}" role="button" tabindex="0" style="cursor:pointer"><span class="av ${tints[i%5]}" style="font-size:12px">${ini(p.n)}</span><div class="grow"><b>${pn(p)}</b><div class="m3 xs mono" dir="ltr">${p.code}</div></div><div style="text-align:end"><b class="num">${rs(p.p)}</b><div class="xs ${p.s<=p.min?'':'m3'}" style="${p.s<=p.min?'color:var(--red-fg)':''}">${p.s} ${T('in stock','موجود')}</div></div></div>`).join('')||`<div class="pad m3" style="padding-block:28px;text-align:center">${T('Nothing here.','یہاں کچھ نہیں۔')}</div>`}</div></div>`}};
+SC['add-product']=()=>({h:`${hd(S.editId?T('Edit product','آئٹم ایڈیٹ'):T('Add product','نیا آئٹم'),S.editId?'product-detail':'products')}<div class="col" style="gap:16px">
+ <div class="field"><label for="bc">${T('Barcode','بارکوڈ')}</label><div class="inwrap"><input id="bc" class="mono" dir="ltr" placeholder="${T('Scan or type','اسکین یا لکھیں')}" value="${S.editId?P.find(x=>x.id===S.editId).code:S.draftCode}"><button data-go="scan" aria-label="Scan" style="color:var(--accent)">${ic('scan')}</button></div></div>
+ <div class="field"><label for="pn">${T('Product name','آئٹم کا نام')}</label><input class="inp" id="pn" value="${S.editId?esc(P.find(x=>x.id===S.editId).n):''}" placeholder="${T('For example, Atta 10kg','مثلاً آٹا 10 کلو')}"></div>
+ <div class="field"><label>${T('Unit','یونٹ')}</label><div class="chips" style="margin-inline:0;padding-inline:0">${['pcs','kg','dozen','litre','pack'].map((u,i)=>`<span class="chip ${i?'':'on'}">${u}</span>`).join('')}</div></div>
+ <div class="grid2"><div class="field"><label for="pc">${T('Cost price','خرید قیمت')}</label><input class="inp num" id="pc" inputmode="numeric" placeholder="0" value="${S.editId?P.find(x=>x.id===S.editId).c:''}" oninput="calcM()"></div><div class="field"><label for="ps">${T('Sale price','فروخت قیمت')}</label><input class="inp num" id="ps" inputmode="numeric" placeholder="0" value="${S.editId?P.find(x=>x.id===S.editId).p:''}" oninput="calcM()"></div></div>
+ <div class="card pad rowx sp"><span class="mut">${T('Profit per unit','فی یونٹ منافع')}</span><b class="num" id="mg">Rs 0 · 0%</b></div>
+ <div class="grid2"><div class="field"><label for="os">${T('Opening stock','ابتدائی اسٹاک')}</label><input class="inp num" id="os" inputmode="numeric" placeholder="0" value="${S.editId?P.find(x=>x.id===S.editId).s:''}"></div><div class="field"><label for="ms">${T('Alert below','الرٹ حد')}</label><input class="inp num" id="ms" inputmode="numeric" placeholder="5"></div></div>
+ ${S.tg.expiry?`<div class="field"><label for="ex">${T('Expiry date','ایکسپائری تاریخ')}</label><input class="inp" id="ex" type="date"></div>`:''}
+ ${btn(S.editId?T('Save changes','تبدیلیاں محفوظ'):T('Save product','آئٹم محفوظ کریں'),'products','pri','data-act="toast" data-arg="'+T('Product saved','آئٹم محفوظ')+'"')}</div>`});
+SC.scan=()=>{const found=S.scan==='found',isnew=S.scan==='new';return{h:`${hd(T('Scan barcode','بارکوڈ اسکین'),'products')}
+ <div class="cam"><div class="fr"><i></i><i></i><i></i><i></i>${S.scan==='idle'?'<span class="ln"></span>':''}</div><div class="hint">${S.scan==='idle'?T('Hold the barcode inside the frame','بارکوڈ فریم کے اندر رکھیں'):T('Code read','کوڈ پڑھ لیا')}</div><button class="ib" style="position:absolute;top:14px;inset-inline-end:14px;background:rgba(255,255,255,.12);color:#fff;box-shadow:none" aria-label="Torch">${ic('flash')}</button></div>
+ ${S.scan==='idle'?`<div class="col gap12"><button class="btn pri blk" data-act="scanit">${T('Read a barcode (demo)','بارکوڈ پڑھیں (ڈیمو)')}</button><button class="btn ghost blk" data-go="add-product">${T('Type code instead','کوڈ خود لکھیں')}</button></div>`
+ :`<div class="card pad col gap12"><div class="rowx sp"><span class="mono" dir="ltr">${found?P[2].code:'8961002000458'}</span><span class="badge ${found?'b-grn':'b-yel'}">${found?T('In catalog','کیٹلاگ میں'):T('New code','نیا کوڈ')}</span></div>
+ ${found?`<div class="rowx"><span class="av b-grn">SU</span><div class="grow"><b>${pn(P[2])}</b><div class="m3 sm">${rs(P[2].p)} · ${P[2].s} ${T('in stock','موجود')}</div></div></div><button class="btn pri blk" data-act="addscan">${T('Add to cart','کارٹ میں ڈالیں')}</button>`
+ :`<div class="m3 sm">${T('This barcode is not in your catalog yet.','یہ بارکوڈ ابھی آپ کے کیٹلاگ میں نہیں۔')}</div><button class="btn pri blk" data-act="addnew">${T('Add as new product','نیا آئٹم بنائیں')}</button>`}
+ <button class="btn ghost blk" data-act="scanagain">${T('Scan another','دوسرا اسکین')}</button></div>`}`}};
+
+SC.stock=()=>{const low=P.filter(p=>p.s<=p.min);return{tab:'prod',h:`<div class="hd"><div class="t1" style="font-size:24px">${T('Stock','اسٹاک')}</div><button class="ib" data-go="adjust-stock" aria-label="Adjust">${ic('plus')}</button></div>
+ <div class="col" style="gap:16px"><div class="seg" style="align-self:flex-start"><button data-go="products">${T('Items','آئٹمز')}</button><button class="on">${T('Stock','اسٹاک')}</button></div>
+ <div class="shell"><div class="core"><span class="lab">${T('Stock value at cost','لاگت پر اسٹاک مالیت')}</span><div class="big" style="margin-top:6px">${rs(842300)}</div><div class="m3 sm" style="margin-top:6px">${T('10 items · 305 units','10 آئٹمز · 305 یونٹس')}</div></div></div>
+ <div class="chips">${[['low',T('Low stock','کم اسٹاک'),3],['exp',T('Expiring','ایکسپائری'),1],['mv',T('Movements','حرکت'),null]].map(f=>`<button class="chip ${S.sf===f[0]||(S.sf==='all'&&f[0]==='low')?'on':''}" data-act="sf" data-arg="${f[0]}">${f[1]}${f[2]?` <span class="num" style="opacity:.6">${f[2]}</span>`:''}</button>`).join('')}</div>
+ ${S.sf==='mv'?`<div class="card" style="padding:2px 16px">${[['Sale #1048','Atta 10kg','-1'],['Purchase #212','Sugar 1kg','+50'],['Sale #1047','Cooking Oil 1L','-2'],['Adjust','Bath Soap','-1 damaged']].map(m=>`<div class="li"><div class="grow"><b>${m[1]}</b><div class="m3 sm">${m[0]}</div></div><b class="num">${m[2]}</b></div>`).join('')}</div>`
+ :S.sf==='exp'?`<div class="card" style="padding:2px 16px"><div class="li"><span class="av b-red">${ic('cal')}</span><div class="grow"><b>${pn(P[6])}</b><div class="m3 sm">${T('Expires in 2 days','2 دن میں ایکسپائر')}</div></div><b class="num">18</b></div></div>`
+ :`<div class="card" style="padding:2px 16px">${low.map(p=>{const r=p.s/p.min;return`<div class="li" style="align-items:stretch;flex-direction:column;gap:8px"><div class="rowx sp"><b>${pn(p)}</b><span class="num ${r<.5?'':'m3'}" style="${r<.5?'color:var(--red-fg)':''}">${p.s} / ${p.min}</span></div><div class="pgm ${r<.5?'bad':'warn'}"><i style="width:${Math.min(100,r*100)}%"></i></div></div>`}).join('')}</div>
+ <button class="btn pri blk" data-go="po">${ic('truck','s')} ${T('Create purchase order','خریداری آرڈر بنائیں')}</button>`}</div>`}};
+
+SC.khata=()=>{const sup=S.kTab==='sup';const SUP=[['Al-Noor Traders','ال نور ٹریڈرز',38000],['City Wholesale','سٹی ہول سیل',24000]];return{tab:'khata',h:`<div class="hd"><div class="t1" style="font-size:24px">${T('Khata','کھاتہ')}</div><button class="ib" data-go="add-customer" aria-label="Add">${ic('plus')}</button></div>
+ <div class="col" style="gap:16px"><div class="card grid3" style="grid-template-columns:1fr 1fr"><div class="stat"><span class="m3 xs">${T('You will get','آپ کو ملنے ہیں')}</span><b class="num t2" style="color:var(--accent)">${rs(totalDue())}</b></div><div class="stat"><span class="m3 xs">${T('You will pay','آپ کو دینے ہیں')}</span><b class="num t2">${rs(62000)}</b></div></div>
+ <div class="seg" style="align-self:flex-start"><button class="${sup?'':'on'}" data-act="kt" data-arg="cust">${T('Customers','گاہک')}</button><button class="${sup?'on':''}" data-act="kt" data-arg="sup">${T('Suppliers','سپلائرز')}</button></div>
+ <label class="inwrap">${ic('search','s')}<input placeholder="${T('Search name or phone','نام یا فون')}" aria-label="Search"></label>
+ <div class="card" style="padding:2px 16px">${sup?SUP.map((s,i)=>`<div class="li"><span class="av ${tints[i]}">${ini(s[0])}</span><div class="grow"><b>${T(s[0],s[1])}</b><div class="m3 sm">${T('Last purchase','آخری خریداری')} ${i?'05':'11'} Nov</div></div><b class="num">${rs(s[2])}</b></div>`).join('')
+ :C.map(c=>`<button class="li" data-act="led" data-arg="${c.id}">${av(cn(c),c.id)}<div class="grow"><b>${cn(c)}</b><div class="m3 sm">${c.area} · ${c.last}</div></div><div style="text-align:end"><b class="num" style="${c.d?'color:var(--red-fg)':''}">${c.d?rs(c.d):T('Settled','ادا')}</b></div>${ic('chev','s flip m3')}</button>`).join('')}</div></div>`}};
+SC.ledger=()=>{const c=C.find(x=>x.id===S.led)||C[0];let run=0;const rows=(c.e||(c.e=c.id===1?LED.map(x=>[...x]):[['10 Nov','Sale #1031',c.d]])).map(r=>{run+=r[2];return[...r,run]}).reverse();
+ return{tab:'khata',h:`${hd(cn(c),'khata',`<button class="ib" data-act="toast" data-arg="${T('Call opens the dialer','کال ڈائلر کھولے گی')}" aria-label="Call">${ic('phone','s')}</button>`)}
+ <div class="col" style="gap:16px"><div class="shell"><div class="core"><span class="lab">${T('Balance due','باقی رقم')}</span><div class="big" style="margin-top:6px;${c.d?'color:var(--red-fg)':''}">${rs(c.d)}</div><div class="m3 sm" style="margin-top:6px">${c.area}</div></div></div>
+ <div class="grid2"><button class="btn pri" data-go="receive">${ic('wallet','s')} ${T('Received','وصول')}</button><button class="btn sec" data-go="reminder">${ic('chat','s')} ${T('Remind','یاد دہانی')}</button></div>
+ <button class="btn ghost blk" data-go="statement">${ic('down','s')} ${T('Statement PDF','اسٹیٹمنٹ پی ڈی ایف')}</button>
+ <div class="card" style="padding:2px 16px">${rows.map(r=>`<div class="li"><div class="grow"><b>${r[1]}</b><div class="m3 sm">${r[0]}</div></div><div style="text-align:end"><b class="num" style="color:${r[2]>0?'var(--red-fg)':'var(--accent)'}">${r[2]>0?'+':'-'}${rs(Math.abs(r[2]))}</b><div class="m3 xs num">${T('Bal','بیلنس')} ${rs(r[3])}</div></div></div>`).join('')}</div></div>`}};
+
+SC.reports=()=>{const p=S.period,d=DAYS[p],k=KPI[p];const pm=[['Cash',58],['JazzCash',17],['Easypaisa',9],['Bank',4],['Khata',12]];const cl=['var(--accent)','var(--blue-fg)','var(--yel-fg)','var(--fg-3)','var(--red-fg)'];
+ return{tab:'more',h:`${hd(T('Reports','رپورٹس'),'more',`<button class="ib" data-act="toast" data-arg="${T('Excel file ready','ایکسل فائل تیار')}" aria-label="Export">${ic('down','s')}</button>`)}
+ <div class="col" style="gap:18px"><div class="seg" style="align-self:flex-start">${[['today',T('Today','آج')],['week',T('Week','ہفتہ')],['month',T('Month','مہینہ')]].map(x=>`<button class="${p===x[0]?'on':''}" data-act="period" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
+ <div class="shell"><div class="core"><span class="lab">${T('Sales','فروخت')}</span><div class="big" style="margin-block:6px 18px">${rs(k[0])}</div>
+  <div class="rowx" style="align-items:stretch;gap:8px"><div class="col" style="justify-content:space-between;height:100px;padding-bottom:20px;font-size:10.5px;color:var(--fg-3);text-align:end" dir="ltr"><span>${d.max}k</span><span>${d.max/2}k</span><span>0</span></div><div class="grow"><div class="bars" style="height:100px;border-bottom:1px solid var(--line-2);background:repeating-linear-gradient(to top,transparent 0,transparent calc(50% - .5px),var(--line) calc(50% - .5px),var(--line) 50%)" role="img" aria-label="Sales chart">${d.v.map((v,i)=>`<i class="${i===d.v.length-(p==='today'?5:1)?'hot':''}" style="height:${v/d.max*100}%"></i>`).join('')}</div><div class="bl">${d.l.map(x=>`<span>${x}</span>`).join('')}</div></div></div></div></div>
+ <div class="card grid3" style="grid-template-columns:1fr 1fr 1fr"><div class="stat"><span class="m3 xs">${T('Profit','منافع')}</span><b class="num">${rs(k[1])}</b></div><div class="stat"><span class="m3 xs">${T('Expenses','اخراجات')}</span><b class="num">${rs(k[2])}</b></div><div class="stat"><span class="m3 xs">${T('Given on khata','کھاتہ دیا')}</span><b class="num">${rs(k[3])}</b></div></div>
+ <div class="card pad col gap12"><b class="t2">${T('How customers paid','ادائیگی کا طریقہ')}</b><div style="display:flex;height:10px;border-radius:8px;overflow:hidden;gap:2px">${pm.map((x,i)=>`<i style="width:${x[1]}%;background:${cl[i]}"></i>`).join('')}</div><div class="col gap8 sm">${pm.map((x,i)=>`<div class="rowx sp"><span class="rowx" style="gap:8px"><i style="width:8px;height:8px;border-radius:50%;background:${cl[i]}"></i>${x[0]}</span><span class="num mut">${x[1]}%</span></div>`).join('')}</div></div>
+ <div class="col gap8"><b class="t2">${T('Top items','سب سے زیادہ بکنے والے')}</b><div class="card" style="padding:2px 16px">${[[1,64],[2,52],[3,48],[8,41]].map(([id,q])=>{const x=P.find(y=>y.id===id);return`<div class="li"><div class="grow"><b>${pn(x)}</b></div><span class="m3 num">${q} ${T('sold','فروخت')}</span></div>`}).join('')}</div></div>
+ <div class="grid2"><button class="btn sec" data-act="toast" data-arg="PDF ${T('ready','تیار')}">${ic('down','s')} PDF</button><button class="btn sec" data-act="toast" data-arg="Excel ${T('ready','تیار')}">${ic('down','s')} Excel</button></div></div>`}};
+
+SC.more=()=>{const items=[['truck',T('Purchases and suppliers','خریداری اور سپلائرز'),'purchases'],['wallet',T('Expenses and cash closing','اخراجات اور کیش کلوزنگ'),'cash-close'],['receipt',T('Sale return','فروخت واپسی'),'returns'],['chart',T('Reports','رپورٹس'),'reports'],['users',T('Staff and permissions','اسٹاف اور اجازتیں'),'staff'],['link',T('Online catalog','آن لائن کیٹلاگ'),'catalog'],['star',T('Loyalty points','لائلٹی پوائنٹس'),'loyalty'],['printer',T('Printer and receipt','پرنٹر اور رسید'),'printer-settings'],['cloud',T('Backup and export','بیک اپ اور ایکسپورٹ'),'backup'],['shield',T('Settings','ترتیبات'),'app-settings'],['help',T('Help','مدد'),'help']];
+ return{tab:'more',h:`<div class="hd"><div class="t1" style="font-size:24px">${T('More','مزید')}</div></div><div class="col" style="gap:16px">
+ <div class="shell"><div class="core rowx"><div class="av" style="background:var(--fg);color:var(--bg)">RG</div><div class="grow"><b>${T('Rashid General Store','راشد جنرل اسٹور')}</b><div class="m3 sm">${T(cat().n[0],cat().n[1])} · Lahore</div></div><span class="badge b-acc">${S.sub.st==='trial'?T('Trial 12 days','ٹرائل 12 دن'):PNAME[S.sub.plan]}</span></div></div>
+ <div class="card" style="padding:2px 16px">${items.map(r=>`<button class="li" ${r[2]?`data-go="${r[2]}"`:`data-act="toast" data-arg="${T('Opens in the full build','مکمل ورژن میں کھلے گا')}"`}><span class="av" style="background:var(--surface-2)">${ic(r[0])}</span><b class="grow" style="font-weight:500">${r[1]}</b>${ic('chev','s flip m3')}</button>`).join('')}</div>
+ <button class="card pad rowx sp" style="width:100%" data-go="subscription"><div><b>${T('Subscription','سبسکرپشن')}</b><div class="m3 sm">${PNAME[S.sub.plan]} · ${rs(PRICE[S.sub.plan][0])} / ${T('month','ماہ')} · ${store()}</div></div><span class="badge ${{trial:'b-acc',active:'b-grn',grace:'b-yel',hold:'b-red',cancelled:'b-yel',expired:'b-red'}[S.sub.st]}">${S.sub.st}</span></button></div>`}};
+SC.purchases=()=>({tab:'more',h:`${hd(T('Purchases','خریداری'),'more')}<div class="col" style="gap:16px">
+ <div class="card pad rowx"><span class="av b-yel">${ic('alert')}</span><div class="grow"><b>${T('8 items to reorder','8 آئٹمز دوبارہ منگوانے ہیں')}</b><div class="m3 sm">${T('Based on sales and stock alerts','فروخت اور اسٹاک الرٹس کے مطابق')}</div></div><button class="btn pri sm" data-go="po">${T('Create PO','آرڈر')}</button></div>
+ <div class="card grid3" style="grid-template-columns:1fr 1fr"><div class="stat"><span class="m3 xs">${T('Payable','واجب الادا')}</span><b class="num t2">${rs(62000)}</b></div><div class="stat"><span class="m3 xs">${T('This month','اس ماہ')}</span><b class="num t2">${rs(318400)}</b></div></div>
+ <div class="card" style="padding:2px 16px">${[['#212','Al-Noor Traders',38000,'11 Nov',0],['#209','City Wholesale',24000,'05 Nov',0],['#204','Al-Noor Traders',52000,'28 Oct',1]].map(r=>`<div class="li"><span class="av" style="background:var(--surface-2)">${ic('truck')}</span><div class="grow"><b>${r[1]}</b><div class="m3 sm"><span class="mono">${r[0]}</span> · ${r[3]}</div></div><div style="text-align:end"><b class="num">${rs(r[2])}</b><div><span class="badge ${r[4]?'b-grn':'b-yel'}">${r[4]?T('Paid','ادا'):T('Due','باقی')}</span></div></div></div>`).join('')}</div>
+ ${btn(T('New purchase','نئی خریداری'),'new-purchase')}</div>`});
+SC['cash-close']=()=>{const rows=[[T('Opening cash','ابتدائی نقد'),5000],[T('Cash sales','نقد فروخت'),28420],[T('Khata received','کھاتہ وصولی'),9000],[T('Expenses paid','ادا اخراجات'),-5200],[T('Supplier payments','سپلائر ادائیگی'),-16000]];const exp=rows.reduce((a,r)=>a+r[1],0);
+ return{tab:'more',h:`${hd(T('Close the day','دن بند کریں'),'more')}<div class="col" style="gap:16px"><div class="card" style="padding:2px 16px">${rows.map(r=>`<div class="li" style="min-height:52px"><span class="grow mut">${r[0]}</span><b class="num">${r[1]<0?'- ':''}${rs(Math.abs(r[1]))}</b></div>`).join('')}<div class="li"><b class="grow t2">${T('Cash expected','متوقع نقد')}</b><b class="num t2">${rs(exp)}</b></div></div>
+ <div class="field"><label for="cc">${T('Cash you counted','گنی ہوئی نقد رقم')}</label><input class="inp num" id="cc" inputmode="numeric" value="21200" oninput="var d=this.value-${exp};document.getElementById('df').textContent=(d<0?'- ':d>0?'+ ':'')+'Rs '+Math.abs(d).toLocaleString('en-IN')"></div>
+ <div class="card pad rowx sp"><span class="mut">${T('Difference','فرق')}</span><b class="num t2" id="df" style="color:var(--red-fg)">- Rs 200</b></div>
+ <button class="btn sec blk" data-go="expense">${ic('plus','s')} ${T('Add expense','خرچہ شامل')}</button>${btn(T('Close day and save','دن بند کریں'),'home','pri','data-act="toast" data-arg="'+T('Day closed. Report saved.','دن بند۔ رپورٹ محفوظ۔')+'"')}</div>`}};
+SC.staff=()=>({tab:'more',h:`${hd(T('Staff','اسٹاف'),'more',`<button class="ib" data-go="add-staff" aria-label="Add">${ic('plus','s')}</button>`)}<div class="col" style="gap:16px">
+ <div class="card" style="padding:2px 16px">${[['Rashid Mehmood',T('Owner','مالک'),'b-acc'],['Imran Shah',T('Cashier','کیشیئر'),'b-blue'],['Sana Akhtar',T('Cashier','کیشیئر'),'b-blue']].map((r,i)=>`<div class="li">${av(r[0],i)}<div class="grow"><b>${r[0]}</b></div><span class="badge ${r[2]}">${r[1]}</span></div>`).join('')}</div>
+ <div class="col gap8"><b class="t2">${T('What cashiers can do','کیشیئر کیا کر سکتا ہے')}</b><div class="card" style="padding:2px 16px">${[['profit',T('See profit and cost','منافع اور لاگت دیکھیں')],['del',T('Delete or edit sales','فروخت حذف یا ایڈیٹ')],['price',T('Give discounts','رعایت دیں')]].map(r=>`<div class="li"><span class="grow">${r[1]}</span>${sw(r[0],S.tog[r[0]])}</div>`).join('')}</div></div>
+ <div class="card pad rowx"><span class="av" style="background:var(--surface-2)">${ic('shield')}</span><div class="grow sm mut">${T('Every sale, edit and delete is saved in the activity log.','ہر فروخت، تبدیلی اور حذف ایکٹیویٹی لاگ میں محفوظ ہوتا ہے۔')}</div></div></div>`});
+
+/* ---------- extra flows ---------- */
+const kp=()=>`<div class="kp">${['1','2','3','4','5','6','7','8','9','00','0','del'].map(k=>`<button data-act="key" data-arg="${k}" aria-label="${k==='del'?'Delete':k}">${k==='del'?ic('back','flip'):k}</button>`).join('')}</div>`;
+const amt=()=>+S.amt||0;
+const bigAmt=l=>`<div class="col" style="align-items:center;gap:2px;padding-block:4px"><span class="lab">${l}</span><div class="big" style="font-size:44px">${rs(amt())}</div></div>`;
+const cr=(pairs,cur,act)=>`<div class="chips">${pairs.map(x=>`<button class="chip ${cur===x[0]?'on':''}" data-act="${act}" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>`;
+const ck=(on,act,arg)=>`<button class="ckb ${on?'on':''}" role="checkbox" aria-checked="${!!on}" data-act="${act}" data-arg="${arg}">${on?ic('check','s'):''}</button>`;
+const stk=(act,arg,val)=>`<div class="stepper"><button data-act="${act}" data-arg="${arg}:-1" aria-label="Less">${ic('minus','s')}</button><b>${val}</b><button data-act="${act}" data-arg="${arg}:1" aria-label="More">${ic('plus','s')}</button></div>`;
+const save=(txt,act,dis)=>`<div class="sticky"><button class="btn pri blk" data-act="${act}" ${dis?'disabled':''}>${txt}</button></div>`;
+const fld=(id,lab,val='',ph='',ex='')=>`<div class="field"><label for="${id}">${lab}</label><input class="inp" id="${id}" value="${val}" placeholder="${ph}" ${ex}></div>`;
+const SUPS=[['Al-Noor Traders','ال نور ٹریڈرز'],['City Wholesale','سٹی ہول سیل']];
+const lowL=()=>P.filter(p=>p.s<=p.min);
+const curC=()=>C.find(x=>x.id===S.led)||C[0];
+const msgs=c=>[
+ T(`Assalam o Alaikum ${c.n}, a gentle reminder from Rashid General Store. Your khata balance is ${rs(c.d)}. Please pay when convenient. Thank you.`,`السلام علیکم ${c.ur}، راشد جنرل اسٹور کی طرف سے یاد دہانی۔ آپ کا کھاتہ ${rs(c.d)} باقی ہے۔ براہ کرم سہولت سے ادا کریں۔ شکریہ۔`),
+ T(`Assalam o Alaikum ${c.n}, your balance of ${rs(c.d)} at Rashid General Store is overdue. Please clear it this week.`,`السلام علیکم ${c.ur}، راشد جنرل اسٹور پر آپ کے ${rs(c.d)} واجب الادا ہیں۔ اس ہفتے ادا کر دیں۔`),
+ T(`Assalam o Alaikum ${c.n}, Rs ${c.d.toLocaleString('en-IN')} is due on 20 Nov. You can pay by JazzCash to 0300 1234567. Shukriya.`,`السلام علیکم ${c.ur}، 20 نومبر کو ${rs(c.d)} واجب ہیں۔ جاز کیش 0300 1234567 پر بھیج سکتے ہیں۔ شکریہ۔`)];
+
+SC.alerts=()=>({h:`${hd(T('Alerts','الرٹس'),'home',`<button class="btn ghost sm" data-act="toast" data-arg="${T('All marked as read','سب پڑھے ہوئے')}">${T('Read all','سب پڑھیں')}</button>`)}<div class="col" style="gap:16px">
+ ${[[T('Today','آج'),[['box','b-yel',T('Sugar 1kg is low','چینی 1 کلو کم ہے'),T('12 left, alert at 25','12 باقی، الرٹ 25'),'09:10','stock'],['wallet','b-grn',T('JazzCash received Rs 2,150','جاز کیش میں Rs 2,150 موصول'),T('From Hina Tariq, bill #1047','حنا طارق، بل #1047'),'08:42','khata'],['cal','b-red',T('Milk Pack expires in 2 days','دودھ 2 دن میں ایکسپائر'),T('18 packs left','18 پیک باقی'),'08:00','stock']]],
+ [T('Earlier','پہلے'),[['users','b-blue',T('3 customers owe over 30 days','3 گاہک 30 دن سے باقی'),T('Total Rs 72,400','کل Rs 72,400'),T('Yesterday','کل'),'khata'],['shield','b-acc',T('Trial ends in 12 days','ٹرائل 12 دن میں ختم'),T('Choose a plan to keep selling','فروخت جاری رکھنے کے لیے پلان چنیں'),'Mon','subscription'],['cloud','b-grn',T('Backup complete','بیک اپ مکمل'),'3.2 MB','Sun','backup']]]].map(g=>`<div class="col gap8"><div class="lab">${g[0]}</div><div class="card" style="padding:2px 16px">${g[1].map(a=>`<button class="li" data-go="${a[5]}"><span class="av ${a[1]}">${ic(a[0])}</span><div class="grow"><b>${a[2]}</b><div class="m3 sm">${a[3]}</div></div><span class="m3 xs">${a[4]}</span></button>`).join('')}</div></div>`).join('')}</div>`});
+
+SC['add-customer']=()=>{const sup=S.pt==='sup';return{h:`${hd(sup?T('Add supplier','سپلائر شامل'):T('Add customer','گاہک شامل'),'khata')}<div class="col" style="gap:16px">
+ <div class="seg" style="align-self:flex-start"><button class="${sup?'':'on'}" data-act="pt" data-arg="cust">${T('Customer','گاہک')}</button><button class="${sup?'on':''}" data-act="pt" data-arg="sup">${T('Supplier','سپلائر')}</button></div>
+ <button class="btn sec blk" data-act="toast" data-arg="${T('Contacts list opens here','کانٹیکٹس کی فہرست یہاں کھلے گی')}">${ic('users','s')} ${T('Pick from phone contacts','فون کانٹیکٹس سے چنیں')}</button>
+ ${fld('cn',T('Name','نام'),'',T('Full name or shop name','پورا نام یا دکان کا نام'))}
+ ${fld('cph',T('Phone','فون'),'',  '03XX XXXXXXX','inputmode="tel" dir="ltr"')}
+ ${fld('car',T('Area, optional','علاقہ، اختیاری'),'',T('For example, Model Town','مثلاً ماڈل ٹاؤن'))}
+ <div class="field"><label>${T('Opening balance','ابتدائی بیلنس')}</label>${cr([['they',sup?T('They owe me','وہ مجھے دیں')+'':T('They owe me','وہ مجھے دیں')],['me',T('I owe them','میں انہیں دوں')]],S.od,'od')}<input class="inp num" id="ob" inputmode="numeric" placeholder="Rs 0" aria-label="Opening balance"></div>
+ ${sup?'':fld('cl',T('Credit limit, optional','کریڈٹ حد، اختیاری'),'','Rs 25,000','inputmode="numeric"')}
+ <div class="card pad rowx"><div class="grow"><b>${T('Send welcome message','خوش آمدید پیغام بھیجیں')}</b><div class="m3 sm">${T('They get a WhatsApp note with your shop name','انہیں آپ کی دکان کے نام کا واٹس ایپ پیغام ملے گا')}</div></div>${sw('wel',S.tog.wel)}</div>
+ ${save(T('Save','محفوظ کریں'),'savecust')}</div>`}};
+
+SC.receive=()=>{const c=curC();const gave=S.rg==='gave';return{h:`${hd(T('Record entry','اندراج'),'ledger')}<div class="col" style="gap:14px">
+ <div class="card pad rowx">${av(cn(c),c.id)}<div class="grow"><b>${cn(c)}</b><div class="m3 sm">${T('Balance due','باقی')} ${rs(c.d)}</div></div></div>
+ <div class="seg" style="display:grid;grid-template-columns:1fr 1fr"><button class="${gave?'':'on'}" data-act="rg" data-arg="got" style="justify-content:center">${T('You got','آپ کو ملا')}</button><button class="${gave?'on':''}" data-act="rg" data-arg="gave" style="justify-content:center">${T('You gave','آپ نے دیا')}</button></div>
+ ${bigAmt(gave?T('New credit given','نیا ادھار'):T('Payment received','وصول رقم'))}
+ ${cr([['Cash',T('Cash','نقد')],['JazzCash','JazzCash'],['Easypaisa','Easypaisa'],['Bank',T('Bank','بینک')]],S.rm,'rm')}
+ <label class="inwrap">${ic('list','s')}<input id="rn" placeholder="${T('Note, optional','نوٹ، اختیاری')}" aria-label="Note"></label>
+ ${kp()}${save(T('Save entry','اندراج محفوظ کریں'),'saverec',!amt())}</div>`}};
+
+SC.reminder=()=>{const c=curC();const m=msgs(c);return{h:`${hd(T('Send reminder','یاد دہانی'),'ledger')}<div class="col" style="gap:16px">
+ <div class="card pad rowx">${av(cn(c),c.id)}<div class="grow"><b>${cn(c)}</b><div class="m3 sm mono" dir="ltr">0300 5550142</div></div><b class="num" style="color:var(--red-fg)">${rs(c.d)}</b></div>
+ ${cr([['0',T('Gentle','نرم')],['1',T('Firm','سخت')],['2',T('With date','تاریخ کے ساتھ')]],String(S.tone),'tone')}
+ <div class="wa"><div class="bub">${m[S.tone]}<div class="xs m3" style="text-align:end;margin-top:6px" dir="ltr">11:42</div></div></div>
+ <div class="card" style="padding:2px 16px"><div class="li"><span class="grow">${T('Attach statement PDF','اسٹیٹمنٹ پی ڈی ایف لگائیں')}</span>${sw('att',S.tog.att)}</div><div class="li"><div class="grow"><div>${T('Also send SMS','ایس ایم ایس بھی بھیجیں')}</div><div class="m3 xs">${T('Uses 1 SMS credit. 100 left.','1 ایس ایم ایس کریڈٹ۔ 100 باقی۔')}</div></div>${sw('sms',S.tog.sms)}</div></div>
+ <button class="btn ghost blk" data-act="toast" data-arg="${T('3 reminders queued','3 یاد دہانیاں قطار میں')}">${T('Remind all overdue, 3 customers','سب واجب الادا کو یاد دہانی، 3 گاہک')}</button>
+ ${save(T('Send on WhatsApp','واٹس ایپ پر بھیجیں'),'sendrem')}</div>`}};
+
+SC.statement=()=>{const c=curC();let run=0;const rows=(c.e||[]).map(r=>{run+=r[2];return[...r,run]});return{h:`${hd(T('Statement','اسٹیٹمنٹ'),'ledger')}<div class="col" style="gap:16px">
+ ${cr([['30','30 days'],['90','3 months'],['all','All time']],S.stp,'stp')}
+ <div class="doc"><div class="rowx sp"><b style="font-size:15px">Rashid General Store</b><span class="xs" style="color:#666">14 Nov 2026</span></div><div class="xs" style="color:#666">Main Market, Gulberg, Lahore · 0300 1234567</div><hr style="border:0;border-top:1px solid #ddd;margin:12px 0">
+ <div class="xs" style="color:#666">ACCOUNT STATEMENT</div><div style="font-size:16px;font-weight:600;margin-bottom:10px">${c.n}</div>
+ <table class="st"><thead><tr><th>Date</th><th>Detail</th><th>Amount</th><th>Balance</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td style="color:${r[2]>0?'#9F2F2D':'#0E6B57'}">${r[2]>0?'+':'-'}${Math.abs(r[2]).toLocaleString('en-IN')}</td><td>${r[3].toLocaleString('en-IN')}</td></tr>`).join('')}</tbody></table>
+ <div class="rowx sp" style="margin-top:12px;padding-top:10px;border-top:1px solid #ddd"><b>Closing balance</b><b style="font-size:16px">${rs(c.d)}</b></div></div>
+ <div class="grid2"><button class="btn pri" data-act="toast" data-arg="${T('PDF ready to share','پی ڈی ایف شیئر کے لیے تیار')}">${ic('chat','s')} ${T('Share PDF','شیئر')}</button><button class="btn sec" data-act="toast" data-arg="${T('Sent to printer','پرنٹر کو بھیجا')}">${ic('printer','s')} ${T('Print','پرنٹ')}</button></div></div>`}};
+
+SC.held=()=>({tab:'sell',h:`${hd(T('Held bills','روکے ہوئے بل'),'cart')}<div class="col" style="gap:16px">${S.held.length?`<div class="card" style="padding:2px 16px">${S.held.map((b,i)=>{const t=b.items.reduce((a,l)=>a+P.find(p=>p.id===l.id).p*l.q,0);const cu=C.find(x=>x.id===b.c);return`<div class="li" style="flex-wrap:wrap"><span class="av b-yel">${ic('pause')}</span><div class="grow"><b>${cu?cn(cu):T('Walk-in','عام گاہک')}</b><div class="m3 sm">${b.t} · ${b.items.reduce((a,l)=>a+l.q,0)} ${T('items','آئٹمز')}</div></div><b class="num">${rs(t)}</b><div class="rowx" style="width:100%;gap:8px"><button class="btn pri sm grow" data-act="resume" data-arg="${i}">${T('Resume','جاری کریں')}</button><button class="btn sec sm" data-act="dropheld" data-arg="${i}" aria-label="Delete">${ic('x','s')}</button></div></div>`}).join('')}</div>`:`<div class="card pad col" style="align-items:center;text-align:center;padding-block:40px;gap:8px"><span class="av b-yel">${ic('pause')}</span><b class="t2">${T('No held bills','کوئی روکا ہوا بل نہیں')}</b><div class="m3 sm" style="max-width:28ch">${T('Tap Hold on the cart to park a sale while you serve someone else.','کارٹ میں روکیں دبا کر بل محفوظ کریں اور دوسرے گاہک کو دیکھیں۔')}</div></div>`}</div>`});
+
+SC.split=()=>{const c=cartCalc();const sp=S.sp;const paid=sp.cash+sp.jazz+sp.khata;const rem=c.tot-paid;const R=[['cash',T('Cash','نقد'),'cash'],['jazz','JazzCash','phone'],['khata',T('Khata','کھاتہ'),'book']];const ok=rem===0&&(!sp.khata||S.cust);
+ return{tab:'sell',h:`${hd(T('Split payment','تقسیم ادائیگی'),'pay')}<div class="col" style="gap:14px">
+ <div class="rowx sp"><span class="mut">${T('Total','کل')}</span><b class="num t2">${rs(c.tot)}</b></div>
+ <div class="card" style="padding:2px 16px">${R.map(r=>`<button class="li" data-act="spa" data-arg="${r[0]}" style="${S.spA===r[0]?'box-shadow:inset 3px 0 0 var(--accent)':''}"><span class="av" style="background:var(--surface-2);color:${S.spA===r[0]?'var(--accent)':'inherit'}">${ic(r[2])}</span><b class="grow">${r[1]}</b><b class="num t2">${rs(sp[r[0]])}</b></button>`).join('')}</div>
+ <div class="rowx sp"><span class="badge ${rem===0?'b-grn':rem<0?'b-red':'b-yel'}">${rem===0?T('Fully covered','مکمل'):rem<0?T('Over by','زیادہ')+' '+rs(-rem):T('Remaining','باقی')+' '+rs(rem)}</span><button class="btn ghost sm" data-act="fill">${T('Fill remaining','باقی بھریں')}</button></div>
+ ${sp.khata&&!S.cust?`<div class="note" style="background:var(--yel-bg);color:var(--yel-fg)">${ic('alert','s')}<span>${T('Khata needs a customer. Choose one in the cart.','کھاتے کے لیے گاہک چنیں۔')}</span></div>`:''}
+ ${kp()}${save(T('Confirm and print','تصدیق اور پرنٹ'),'splitok',!ok)}</div>`}};
+
+SC['adjust-stock']=()=>{const a=S.adj;const p=P.find(x=>x.id===a.id);const after=a.type==='add'?p.s+a.q:a.type==='rem'?p.s-a.q:a.q;return{h:`${hd(T('Adjust stock','اسٹاک ایڈجسٹ'),'stock')}<div class="col" style="gap:16px">
+ <div class="field"><label for="adi">${T('Item','آئٹم')}</label><select class="inp" id="adi" onchange="adjItem(this.value)">${P.map(x=>`<option value="${x.id}" ${x.id===a.id?'selected':''}>${pn(x)}</option>`).join('')}</select></div>
+ <div class="seg" style="display:grid;grid-template-columns:repeat(3,1fr)">${[['add',T('Add','شامل')],['rem',T('Remove','کم')],['set',T('Set count','گنتی')]].map(x=>`<button class="${a.type===x[0]?'on':''}" data-act="adt" data-arg="${x[0]}" style="justify-content:center">${x[1]}</button>`).join('')}</div>
+ <div class="col" style="align-items:center;gap:10px;padding-block:6px"><div class="rowx" style="gap:18px"><button class="ib" style="width:56px;height:56px" data-act="adq" data-arg="-1" aria-label="Less">${ic('minus')}</button><div class="big" style="min-width:110px;text-align:center">${a.q}</div><button class="ib" style="width:56px;height:56px" data-act="adq" data-arg="1" aria-label="More">${ic('plus')}</button></div><div class="chips" style="margin:0;padding:0">${[5,10,25,50].map(n=>`<button class="chip" data-act="adq" data-arg="${n}">+${n}</button>`).join('')}</div></div>
+ <div class="card pad rowx sp"><div><span class="m3 xs">${T('Now','ابھی')}</span><div class="t2 num">${p.s}</div></div>${ic('chev','flip m3')}<div style="text-align:end"><span class="m3 xs">${T('After','بعد')}</span><div class="t2 num" style="color:${after<0?'var(--red-fg)':'var(--accent)'}">${after}</div></div></div>
+ <div class="field"><label>${T('Reason','وجہ')}</label>${cr([['Recount',T('Recount','دوبارہ گنتی')],['Damaged',T('Damaged','خراب')],['Expired',T('Expired','ایکسپائر')],['Found',T('Found','مل گیا')],['Returned',T('Returned','واپس')]],a.why,'adw')}</div>
+ ${save(T('Save adjustment','ایڈجسٹمنٹ محفوظ'),'adsave',after<0)}</div>`}};
+
+SC['new-purchase']=()=>{const tot=S.pu.reduce((a,l)=>a+l.q*l.c,0);return{h:`${hd(T('New purchase','نئی خریداری'),'purchases')}<div class="col" style="gap:16px">
+ <div class="grid2"><div class="field"><label for="sp">${T('Supplier','سپلائر')}</label><select class="inp" id="sp">${SUPS.map(x=>`<option>${T(x[0],x[1])}</option>`).join('')}</select></div><div class="field"><label>${T('Date','تاریخ')}</label><div class="inwrap">${ic('cal','s')}<span>14 Nov</span></div></div></div>
+ <div class="card" style="padding:2px 16px">${S.pu.map(l=>{const p=P.find(x=>x.id===l.id);return`<div class="li"><div class="grow"><b>${pn(p)}</b><div class="m3 sm num">${rs(l.c)} ${T('each','فی')}</div></div>${stk('pq',l.id,l.q)}<b class="num" style="min-width:76px;text-align:end">${rs(l.q*l.c)}</b></div>`}).join('')||`<div class="pad m3" style="padding-block:24px;text-align:center">${T('No items yet','ابھی کوئی آئٹم نہیں')}</div>`}</div>
+ <div class="grid2"><button class="btn sec" data-go="scan">${ic('scan','s')} ${T('Scan item','اسکین')}</button><button class="btn sec" data-act="addlow">${ic('plus','s')} ${T('Add low stock','کم اسٹاک شامل')}</button></div>
+ <div class="field"><label>${T('Payment','ادائیگی')}</label>${cr([['cash',T('Paid cash','نقد ادا')],['credit',T('On credit','ادھار')],['part',T('Part paid','جزوی')]],S.pay2,'pay2')}</div>
+ <button class="card pad rowx" style="width:100%" data-act="toast" data-arg="${T('Camera opens to photo the bill','بل کی تصویر کے لیے کیمرہ کھلے گا')}"><span class="av b-blue">${ic('receipt')}</span><span class="grow mut">${T('Attach supplier bill photo','سپلائر بل کی تصویر لگائیں')}</span>${ic('chev','s flip m3')}</button>
+ <div class="card pad rowx sp"><b class="t2">${T('Total','کل')}</b><b class="big" style="font-size:26px">${rs(tot)}</b></div>
+ ${save(T('Save purchase and add to stock','خریداری محفوظ، اسٹاک میں شامل'),'savepu',!S.pu.length)}</div>`}};
+
+SC.po=()=>{const L=lowL();const on=L.filter(p=>!S.poOff.includes(p.id));const q=p=>p.min*2-p.s;const tot=on.reduce((a,p)=>a+q(p)*p.c,0);return{h:`${hd(T('Purchase order','خریداری آرڈر'),'purchases')}<div class="col" style="gap:16px">
+ <div class="note" style="background:var(--yel-bg);color:var(--yel-fg)">${ic('alert','s')}<span>${T('Suggested from stock alerts and your last 30 days of sales.','اسٹاک الرٹس اور پچھلے 30 دن کی فروخت کے مطابق تجویز۔')}</span></div>
+ <div class="field"><label for="pos">${T('Order from','آرڈر کس سے')}</label><select class="inp" id="pos">${SUPS.map(x=>`<option>${T(x[0],x[1])}</option>`).join('')}</select></div>
+ <div class="card" style="padding:2px 16px">${L.map(p=>`<div class="li">${ck(!S.poOff.includes(p.id),'poc',p.id)}<div class="grow"><b>${pn(p)}</b><div class="m3 sm">${T('Have','موجود')} ${p.s}, ${T('alert at','الرٹ')} ${p.min}</div></div><div style="text-align:end"><b class="num">${q(p)} ${T('units','یونٹ')}</b><div class="m3 xs num">${rs(q(p)*p.c)}</div></div></div>`).join('')}</div>
+ <div class="card pad rowx sp"><span class="mut">${T('Estimated cost','متوقع لاگت')}</span><b class="big" style="font-size:24px">${rs(tot)}</b></div>
+ <div class="grid2"><button class="btn sec" data-act="toast" data-arg="${T('Draft saved','مسودہ محفوظ')}">${T('Save draft','مسودہ')}</button><button class="btn pri" data-act="toast" data-arg="${T('Order opened in WhatsApp','آرڈر واٹس ایپ میں کھلا')}" ${on.length?'':'disabled'}>${ic('chat','s')} WhatsApp</button></div></div>`}};
+
+SC.expense=()=>{const E=[['Rent',T('Rent','کرایہ')],['Electricity',T('Electricity','بجلی')],['Salary',T('Salary','تنخواہ')],['Transport',T('Transport','کرایہ بار')],['Tea',T('Tea and misc','چائے اور متفرق')],['Other',T('Other','دیگر')]];return{h:`${hd(T('Add expense','خرچہ شامل'),'cash-close')}<div class="col" style="gap:14px">
+ <div class="card pad rowx sp"><div><span class="m3 xs">${T('Spent today','آج خرچ')}</span><div class="t2 num">${rs(5200+S.expT)}</div></div><span class="badge b-blue">${3+S.expN} ${T('entries','اندراج')}</span></div>
+ ${cr(E,S.ecat,'ecat')}${bigAmt(T('Amount','رقم'))}
+ ${cr([['Cash',T('From cash drawer','نقد دراز سے')],['Bank',T('From bank','بینک سے')]],S.efrom,'efrom')}
+ <label class="inwrap">${ic('list','s')}<input id="en" placeholder="${T('Note, optional','نوٹ، اختیاری')}" aria-label="Note"></label>
+ ${kp()}${save(T('Save expense','خرچہ محفوظ'),'saveexp',!amt())}</div>`}};
+
+SC['add-staff']=()=>({h:`${hd(T('Add staff','اسٹاف شامل'),'staff')}<div class="col" style="gap:16px">
+ ${fld('sfn',T('Name','نام'),'',T('Full name','پورا نام'))}${fld('sfp',T('Phone','فون'),'','03XX XXXXXXX','inputmode="tel" dir="ltr"')}
+ <div class="field"><label>${T('Role','کردار')}</label>${cr([['cashier',T('Cashier','کیشیئر')],['manager',T('Manager','مینیجر')]],S.role,'role')}</div>
+ <div class="card" style="padding:2px 16px">${[['profit',T('See profit and cost','منافع اور لاگت دیکھیں')],['del',T('Delete or edit sales','فروخت حذف یا ایڈیٹ')],['price',T('Give discounts','رعایت دیں')]].map(r=>`<div class="li"><span class="grow">${r[1]}</span>${sw(r[0],S.role==='manager'?true:S.tog[r[0]])}</div>`).join('')}</div>
+ <div class="field"><label>${T('Quick login PIN','فوری لاگ ان پن')}</label><div class="rowx" style="gap:8px;direction:ltr">${[0,1,2,3].map(()=>`<input class="inp mono" style="text-align:center;padding:0;font-size:20px" maxlength="1" inputmode="numeric" type="password" aria-label="PIN digit" oninput="this.value&&this.nextElementSibling&&this.nextElementSibling.focus()">`).join('')}</div></div>
+ <div class="m3 xs">${T('They get an invite by WhatsApp. Every action they take is saved in the activity log.','انہیں واٹس ایپ پر دعوت ملے گی۔ ان کا ہر عمل ایکٹیویٹی لاگ میں محفوظ ہوگا۔')}</div>
+ ${save(T('Send invite','دعوت بھیجیں'),'savestaff')}</div>`});
+
+SC.catalog=()=>{const on=S.tog.catOn;return{tab:'more',h:`${hd(T('Online catalog','آن لائن کیٹلاگ'),'more')}<div class="col" style="gap:16px">
+ <div class="card pad rowx"><div class="grow"><b>${T('Show my shop online','میری دکان آن لائن دکھائیں')}</b><div class="m3 sm">${T('Customers browse items and send an order on WhatsApp','گاہک آئٹمز دیکھ کر واٹس ایپ پر آرڈر بھیجتے ہیں')}</div></div>${sw('catOn',on)}</div>
+ ${on?`<div class="shell"><div class="core col gap12"><span class="lab">${T('Your link','آپ کا لنک')}</span><div class="mono" dir="ltr" style="font-size:15px;word-break:break-all">dukaan.app/rashid-store</div><div class="grid2"><button class="btn sec sm" data-act="toast" data-arg="${T('Link copied','لنک کاپی ہو گیا')}">${T('Copy','کاپی')}</button><button class="btn pri sm" data-act="toast" data-arg="${T('Share sheet opens','شیئر شیٹ کھلے گی')}">${ic('chat','s')} ${T('Share','شیئر')}</button></div></div></div>
+ <div class="card" style="padding:2px 16px">${[['cprice',T('Show prices','قیمتیں دکھائیں')],['cord',T('Accept orders','آرڈر قبول کریں')],['cdel',T('Offer home delivery','ہوم ڈیلیوری')]].map(r=>`<div class="li"><span class="grow">${r[1]}</span>${sw(r[0],S.tog[r[0]])}</div>`).join('')}<div class="li"><span class="grow">${T('Items shown','دکھائے گئے آئٹمز')}</span><b class="num">10 / 10</b></div></div>
+ <div class="col gap8"><b class="t2">${T('New orders','نئے آرڈر')}</b><div class="card" style="padding:2px 16px">${[['Sana Akhtar','3 items',1240],['Imran Shah','5 items',2870]].map((o,i)=>`<div class="li" style="flex-wrap:wrap"><span class="av ${tints[i]}">${ini(o[0])}</span><div class="grow"><b>${o[0]}</b><div class="m3 sm">${o[1]} · ${rs(o[2])}</div></div>${S.ord[i]?`<span class="badge ${S.ord[i]==='ok'?'b-grn':'b-red'}">${S.ord[i]==='ok'?T('Accepted','قبول'):T('Declined','مسترد')}</span>`:`<button class="btn sec sm" data-act="ord" data-arg="${i}:no">${T('Decline','مسترد')}</button><button class="btn pri sm" data-act="ord" data-arg="${i}:ok">${T('Accept','قبول')}</button>`}</div>`).join('')}</div></div>`:`<div class="card pad m3" style="text-align:center;padding-block:34px">${T('Turn on to get your link.','لنک کے لیے آن کریں۔')}</div>`}</div>`}};
+
+SC.loyalty=()=>({tab:'more',h:`${hd(T('Loyalty points','لائلٹی پوائنٹس'),'more')}<div class="col" style="gap:16px">
+ <div class="card pad rowx"><div class="grow"><b>${T('Reward repeat customers','دوبارہ آنے والوں کو انعام')}</b><div class="m3 sm">${T('Customers earn points on every bill','ہر بل پر پوائنٹس ملتے ہیں')}</div></div>${sw('loy',S.tog.loy)}</div>
+ ${S.tog.loy?`<div class="card" style="padding:2px 16px"><div class="li"><div class="grow"><b>${T('Earn','کمائیں')}</b><div class="m3 sm">${T('Points for every Rs 100 spent','ہر Rs 100 پر پوائنٹس')}</div></div>${stk('lq','earn',S.loy.earn)}</div><div class="li"><div class="grow"><b>${T('Redeem','استعمال')}</b><div class="m3 sm">${S.loy.red*10} ${T('points equal','پوائنٹس برابر')} ${rs(S.loy.red*5)}</div></div>${stk('lq','red',S.loy.red)}</div></div>
+ <div class="col gap8"><b class="t2">${T('Top customers','سرفہرست گاہک')}</b><div class="card" style="padding:2px 16px">${[[3,420],[1,360],[5,215]].map(([id,pt])=>{const c=C.find(x=>x.id===id);return`<div class="li">${av(cn(c),c.id)}<b class="grow">${cn(c)}</b><span class="badge b-acc">${pt} pts</span></div>`}).join('')}</div></div>
+ <div class="card pad col gap12"><b>${T('Bring back quiet customers','پرانے گاہکوں کو واپس بلائیں')}</b><div class="m3 sm">${T('24 customers have not visited in 30 days. SMS costs 24 credits.','24 گاہک 30 دن سے نہیں آئے۔ ایس ایم ایس کے 24 کریڈٹ لگیں گے۔')}</div><button class="btn sec" data-act="toast" data-arg="${T('SMS offer scheduled','ایس ایم ایس آفر شیڈول')}">${ic('chat','s')} ${T('Send offer by SMS','ایس ایم ایس آفر بھیجیں')}</button></div>`:''}</div>`});
+
+SC.backup=()=>({tab:'more',h:`${hd(T('Backup and export','بیک اپ اور ایکسپورٹ'),'more')}<div class="col" style="gap:16px">
+ <div class="shell"><div class="core col gap12"><div class="rowx"><span class="av b-grn">${ic('cloud')}</span><div class="grow"><b>${S.bk==='done'?T('Backed up just now','ابھی بیک اپ ہوا'):T('Last backup 03:12 today','آخری بیک اپ آج 03:12')}</b><div class="m3 sm">3.2 MB · ${T('0 changes waiting','0 تبدیلیاں منتظر')}</div></div></div>${S.bk==='run'?`<div class="pgm"><i style="animation:fill 1.8s linear both"></i></div>`:''}<button class="btn pri blk" data-act="bkrun" ${S.bk==='run'?'disabled':''}>${S.bk==='run'?T('Backing up','بیک اپ جاری'):T('Back up now','ابھی بیک اپ')}</button></div></div>
+ <div class="card" style="padding:2px 16px"><div class="li"><div class="grow"><b>${T('Automatic backup','خودکار بیک اپ')}</b><div class="m3 sm">${T('Every night on Wi-Fi','ہر رات وائی فائی پر')}</div></div>${sw('bka',S.tog.bka)}</div></div>
+ <div class="col gap8"><b class="t2">${T('Export','ایکسپورٹ')}</b><div class="card" style="padding:2px 16px">${[[T('Products','آئٹمز'),'Excel'],[T('Sales','فروخت'),'Excel'],[T('Customer khata','کسٹمر کھاتہ'),'PDF'],[T('Everything','سب کچھ'),'ZIP']].map(r=>`<button class="li" data-act="toast" data-arg="${r[0]} ${r[1]} ${T('ready','تیار')}"><span class="av" style="background:var(--surface-2)">${ic('down','s')}</span><b class="grow" style="font-weight:500">${r[0]}</b><span class="badge b-blue">${r[1]}</span></button>`).join('')}</div></div>
+ <button class="btn ghost blk" data-act="toast" data-arg="${T('Choose a backup to restore','بحال کرنے کے لیے بیک اپ چنیں')}">${T('Restore from backup','بیک اپ سے بحال کریں')}</button></div>`});
+
+SC.help=()=>{const F=[[T('How do I add a product by scanning?','اسکین سے آئٹم کیسے شامل کروں؟'),T('Open Items, tap the scan icon and point the camera at the barcode. New codes open the Add product form.','آئٹمز کھولیں، اسکین دبائیں اور کیمرہ بارکوڈ پر رکھیں۔')],[T('My printer does not connect','پرنٹر نہیں جڑ رہا'),T('Turn the printer off and on, keep it within 1 metre, then pair again from Printer and receipt.','پرنٹر بند کر کے دوبارہ آن کریں، ایک میٹر کے اندر رکھیں، پھر دوبارہ جوڑیں۔')],[T('Can I use the app without internet?','کیا انٹرنیٹ کے بغیر چل سکتی ہے؟'),T('Yes. Sales and khata save on your phone and sync when you are online again.','جی ہاں۔ فروخت اور کھاتہ فون میں محفوظ ہوتے ہیں اور انٹرنیٹ آنے پر سنک ہو جاتے ہیں۔')],[T('How do I pay or cancel my subscription?','سبسکرپشن کیسے ادا یا منسوخ کروں؟'),T('Open More, then Subscription. Payment and cancellation are handled by the Play Store or App Store on your phone.','مزید، پھر سبسکرپشن کھولیں۔ ادائیگی اور منسوخی آپ کے فون کا پلے اسٹور یا ایپ اسٹور سنبھالتا ہے۔')]];return{tab:'more',h:`${hd(T('Help','مدد'),'more')}<div class="col" style="gap:16px">
+ <div class="grid2"><button class="btn pri" data-act="toast" data-arg="${T('WhatsApp support opens','واٹس ایپ سپورٹ کھلے گا')}">${ic('chat','s')} ${T('WhatsApp us','واٹس ایپ')}</button><button class="btn sec" data-act="toast" data-arg="${T('Dialer opens','ڈائلر کھلے گا')}">${ic('phone','s')} ${T('Call','کال')}</button></div>
+ <div class="m3 sm">${T('Support is open 9am to 9pm, every day.','سپورٹ روزانہ صبح 9 سے رات 9 بجے تک۔')}</div>
+ <div class="col gap8"><b class="t2">${T('Common questions','عام سوالات')}</b><div>${F.map((f,i)=>`<div style="border-bottom:1px solid var(--line)"><button class="rowx sp" style="width:100%;min-height:56px" data-act="faq" data-arg="${i}" aria-expanded="${S.faq===i}"><b style="font-weight:500">${f[0]}</b>${ic(S.faq===i?'minus':'plus','s')}</button>${S.faq===i?`<div class="mut" style="padding-bottom:16px">${f[1]}</div>`:''}</div>`).join('')}</div></div>
+ <div class="m3 xs" style="text-align:center">Dukaan 1.0.3 · ${T('Android','اینڈرائیڈ')}</div></div>`}};
+
+const store=()=>S.os==='ios'?'App Store':'Google Play';
+const PRICE={basic:[500,5000],standard:[900,9000],pro:[1500,15000]};
+const PNAME={basic:'Basic',standard:'Standard',pro:'Pro'};
+const subBanner=()=>{const st=store();const m={
+ trial:['b-acc','shield',T('Trial ends in 12 days','ٹرائل 12 دن میں ختم'),T('Billed by '+st+' after the trial. Cancel anytime.',st+' ٹرائل کے بعد بل کرے گا۔ کبھی بھی منسوخ کریں۔'),'subscription'],
+ grace:['b-yel','alert',T('Payment failed','ادائیگی ناکام'),T('Update your payment method in '+st+'. Full access for 5 more days.',st+' میں ادائیگی کا طریقہ اپڈیٹ کریں۔ 5 دن مکمل رسائی۔'),'subscription'],
+ hold:['b-red','lock',T('Selling is paused','فروخت رکی ہوئی ہے'),T('Fix your payment in '+st+' to continue.',st+' میں ادائیگی ٹھیک کریں۔'),'paywall'],
+ cancelled:['b-yel','cal',T('Subscription ends 02 Dec','سبسکرپشن 02 دسمبر کو ختم'),T('You will not be charged again.','دوبارہ چارج نہیں ہوگا۔'),'subscription'],
+ expired:['b-red','lock',T('Subscription ended','سبسکرپشن ختم'),T('Your data is safe. Subscribe to sell again.','آپ کا ڈیٹا محفوظ ہے۔ فروخت کے لیے سبسکرائب کریں۔'),'paywall']}[S.sub.st];
+ if(!m)return'';return`<button class="card pad rowx" style="width:100%" data-go="${m[4]}"><span class="av ${m[0]}">${ic(m[1])}</span><span class="grow"><b>${m[2]}</b><div class="m3 sm">${m[3]}</div></span>${ic('chev','s flip m3')}</button>`};
+
+SC.subscription=()=>{const sb=S.sub,st=sb.st,sn=store();const nm=PNAME[sb.plan],pr=PRICE[sb.plan][0];
+ const L={trial:['b-acc',T('Free trial','مفت ٹرائل')],active:['b-grn',T('Active','فعال')],grace:['b-yel',T('Payment issue','ادائیگی مسئلہ')],hold:['b-red',T('On hold','رکا ہوا')],cancelled:['b-yel',T('Cancelled','منسوخ')],expired:['b-red',T('Expired','ختم')]}[st];
+ const D={trial:T('2 of 14 trial days used. First charge of '+rs(pr)+' on 26 Nov unless you cancel.','14 میں سے 2 دن استعمال۔ منسوخ نہ کریں تو 26 نومبر کو '+rs(pr)+' چارج ہوں گے۔'),
+ active:T('Renews on 02 Dec for '+rs(pr)+'.','02 دسمبر کو '+rs(pr)+' پر تجدید۔'),
+ grace:T(sn+' could not charge you. You keep full access for 5 more days while it retries.',sn+' چارج نہیں کر سکا۔ دوبارہ کوشش کے دوران 5 دن مکمل رسائی۔'),
+ hold:T('Payment did not go through. The app is read-only until it does.','ادائیگی نہیں ہوئی۔ تب تک ایپ صرف دیکھنے کے لیے ہے۔'),
+ cancelled:T('Access continues until 02 Dec. You will not be charged again.','02 دسمبر تک رسائی رہے گی۔ دوبارہ چارج نہیں ہوگا۔'),
+ expired:T('Your subscription ended on 28 Oct. Your data is safe.','آپ کی سبسکرپشن 28 اکتوبر کو ختم ہوئی۔ ڈیٹا محفوظ ہے۔')}[st];
+ const cta=st==='grace'||st==='hold'?[T('Update payment method','ادائیگی کا طریقہ اپڈیٹ'),'manage']:st==='cancelled'||st==='expired'?[T('Subscribe again','دوبارہ سبسکرائب'),'resub']:null;
+ return{tab:'more',h:`${hd(T('Subscription','سبسکرپشن'),'more')}<div class="col" style="gap:16px">
+ <div class="shell"><div class="core col gap12"><div class="rowx sp"><b class="t2">${nm}</b><span class="badge ${L[0]}">${L[1]}</span></div><div><span class="big" style="font-size:30px">${rs(pr)}</span><span class="m3"> / ${T('month','ماہ')}</span></div>${st==='trial'?'<div class="pgm"><i style="width:14%"></i></div>':''}<div class="mut sm">${D}</div>${cta?`<button class="btn pri blk" data-act="${cta[1]}">${cta[0]}</button>`:''}</div></div>
+ <div class="card" style="padding:2px 16px">
+  <button class="li" data-act="manage"><span class="av b-blue">${ic('shield')}</span><span class="grow"><b>${T('Manage in '+sn,sn+' میں سنبھالیں')}</b><div class="m3 sm">${T('Cancel, change payment method, see receipts','منسوخ، ادائیگی کا طریقہ، رسیدیں')}</div></span>${ic('arrow','s m3')}</button>
+  <button class="li" data-act="chg"><span class="av b-acc">${ic('tag')}</span><span class="grow"><b>${T('Change plan','پلان بدلیں')}</b><div class="m3 sm">Basic · Standard · Pro</div></span>${ic('chev','s flip m3')}</button>
+  <button class="li" data-act="restore"><span class="av" style="background:var(--surface-2)">${ic('down')}</span><span class="grow"><b>${T('Restore purchases','خریداری بحال کریں')}</b><div class="m3 sm">${T('Bought on another phone or reinstalled?','دوسرے فون پر خریدا یا دوبارہ انسٹال کیا؟')}</div></span></button></div>
+ <div class="card pad col gap8 sm mut"><div class="rowx sp"><span>${T('Billed by','بل کنندہ')}</span><b style="color:var(--fg)">${sn}</b></div><div class="rowx sp"><span>${T('Receipts','رسیدیں')}</span><b style="color:var(--fg)">${T('Emailed by '+sn,sn+' ای میل کرتا ہے')}</b></div><div class="rowx sp"><span>${T('Works offline','آف لائن')}</span><b style="color:var(--fg)">${T('Up to 7 days','7 دن تک')}</b></div></div>
+ <div class="m3 xs" style="text-align:center">${T('Only the shop owner can buy or change the plan. Terms of use · Privacy policy','صرف دکان کا مالک پلان خرید یا بدل سکتا ہے۔ شرائط · پرائیویسی')}</div>
+ <div class="col gap8"><div class="lab">${T('Prototype: set subscription state','پروٹو ٹائپ: حالت')}</div><div class="chips">${['trial','active','grace','hold','cancelled','expired'].map(x=>`<button class="chip ${st===x?'on':''}" data-act="substate" data-arg="${x}">${x}</button>`).join('')}</div></div></div>`}};
+
+SC['pay-plan']=()=>{const sn=store(),ios=S.os==='ios';const nm=PNAME[S.plan],pr=PRICE[S.plan][S.yearly?1:0];const trial=S.ctx==='onboard';const per=S.yearly?T('year','سال'):T('month','ماہ');
+ const head=`${hd('',S.buy==='sheet'?(S.ctx==='onboard'?'plan':S.ctx==='change'?'plan':'plan'):'')}`;
+ let body='';
+ if(S.buy==='sheet'){body=`<div class="col" style="gap:14px"><div class="col gap8"><h1 class="t1">${trial?T('Start your free trial','مفت ٹرائل شروع کریں'):T('Confirm your plan','پلان کی تصدیق')}</h1><p class="sub">${T('Payment is handled by '+sn+'. Dukaan never sees your card.',sn+' ادائیگی سنبھالتا ہے۔ دکان آپ کا کارڈ نہیں دیکھتا۔')}</p></div>
+  <div class="card pad col gap8 sm mut"><div class="rowx sp"><span>${T('Plan','پلان')}</span><b style="color:var(--fg)">${nm} · ${S.yearly?T('Yearly','سالانہ'):T('Monthly','ماہانہ')}</b></div>${S.ctx==='change'?`<div class="rowx sp"><span>${T('Change takes effect','تبدیلی')}</span><b style="color:var(--fg)">${T('Now, prorated','ابھی، تناسب سے')}</b></div>`:''}</div>
+  <div class="lab">${T('Prototype: choose the result','پروٹو ٹائپ: نتیجہ')}</div>${cr([['success',T('Success','کامیاب')],['pending',T('Pending','زیر التوا')],['cancel',T('Cancelled','منسوخ')],['fail',T('Declined','مسترد')]],S.buyOut,'bout')}</div>
+  <div class="sheet ${ios?'ios':''}"><div class="grab"></div>
+  ${ios?`<div class="rowx sp"><b>App Store</b><span class="m3 sm" dir="ltr">rashid@icloud.com</span></div>`:`<div class="rowx" style="gap:10px"><div class="mark" style="width:36px;height:36px;border-radius:10px;font-size:17px">D</div><div class="grow"><b>${nm}</b><div class="m3 xs">Dukaan POS</div></div></div>`}
+  <div class="col gap8" style="padding-block:6px"><b style="font-size:17px">${trial?T('14 days free, then '+rs(pr)+' / '+per,'14 دن مفت، پھر '+rs(pr)+' / '+per):rs(pr)+' / '+per}</b><div class="m3 sm">${trial?T('You will not be charged today.','آج کوئی چارج نہیں ہوگا۔'):T('Renews automatically until you cancel.','منسوخ کرنے تک خودکار تجدید۔')}</div></div>
+  ${ios?'':`<div class="rowx sp" style="padding-block:10px;border-block:1px solid var(--line)"><span class="rowx" style="gap:10px">${ic('wallet','s')}<span dir="ltr">Visa •••• 4242</span></span><span class="m3 sm">${T('Change','بدلیں')}</span></div>`}
+  <button class="btn pri blk" data-act="buygo">${ios?ic('shield','s')+' '+T('Subscribe','سبسکرائب'):(trial?T('Start free trial','مفت ٹرائل شروع'):T('Subscribe','سبسکرائب'))}</button>
+  <div class="m3 xs" style="text-align:center">${ios?T('Confirm with Face ID. Cancel anytime in Settings, then Subscriptions.','Face ID سے تصدیق۔ سیٹنگز، پھر سبسکرپشنز میں کبھی بھی منسوخ کریں۔'):T('Cancel anytime in Google Play, then Subscriptions. By subscribing you accept the terms.','Google Play، پھر سبسکرپشنز میں کبھی بھی منسوخ کریں۔')}</div></div>`}
+ else if(S.buy==='processing'){body=`<div class="col" style="align-items:center;gap:16px;padding-block:60px"><span class="spin"></span><b class="t2">${T('Confirming with '+sn,sn+' سے تصدیق')}</b><div class="m3 sm">${T('Do not close the app','ایپ بند نہ کریں')}</div></div>`}
+ else if(S.buy==='done'){body=`<div class="col" style="gap:18px;padding-top:20px"><div class="col" style="align-items:center;gap:10px;text-align:center"><div class="av" style="width:56px;height:56px;border-radius:18px;background:var(--accent);color:var(--accent-fg)">${ic('check','l')}</div><h1 class="t1" style="font-size:24px">${trial?T('Your free trial has started','آپ کا مفت ٹرائل شروع'):T('You are subscribed','آپ سبسکرائب ہیں')}</h1></div>
+  <div class="card" style="padding:2px 16px">${[[T('Confirmed by '+sn,sn+' نے تصدیق کی')],[T('Verified by Dukaan','دکان نے تصدیق کی')],[T(nm+' unlocked for your shop and staff',nm+' آپ کی دکان اور اسٹاف کے لیے کھل گیا')]].map((x,i)=>`<div class="li" style="animation:up .5s var(--ease) both;animation-delay:${i*180}ms"><span style="color:var(--accent)">${ic('check','s')}</span><span class="grow">${x[0]}</span></div>`).join('')}</div>
+  <div class="m3 sm" style="text-align:center">${trial?T('First charge of '+rs(pr)+' on 26 Nov. Cancel before then and pay nothing.','پہلا چارج '+rs(pr)+' 26 نومبر کو۔ اس سے پہلے منسوخ کریں تو کچھ نہیں۔'):T('Receipt sent to your email by '+sn+'.','رسید '+sn+' نے ای میل کی۔')}</div>
+  ${btn(T('Continue','جاری رکھیں'),S.ctx==='onboard'?'printer':'subscription')}</div>`}
+ else if(S.buy==='pending'){body=`<div class="col" style="align-items:center;text-align:center;gap:12px;padding-top:30px"><span class="av b-yel" style="width:56px;height:56px;border-radius:18px">${ic('cal','l')}</span><h1 class="t1" style="font-size:24px">${T('Payment is pending','ادائیگی زیر التوا')}</h1><p class="sub">${T(sn+' is still processing your payment. We unlock '+nm+' the moment it clears. You can keep using the app.',sn+' ادائیگی پر کام کر رہا ہے۔ مکمل ہوتے ہی '+nm+' کھل جائے گا۔ ایپ استعمال کرتے رہیں۔')}</p>${btn(T('Continue','جاری رکھیں'),S.ctx==='onboard'?'printer':'subscription')}</div>`}
+ else{const cancel=S.buy==='cancel';body=`<div class="col" style="align-items:center;text-align:center;gap:12px;padding-top:30px"><span class="av b-red" style="width:56px;height:56px;border-radius:18px">${ic(cancel?'x':'alert','l')}</span><h1 class="t1" style="font-size:24px">${cancel?T('Purchase cancelled','خریداری منسوخ'):T('Payment declined','ادائیگی مسترد')}</h1><p class="sub">${cancel?T('You were not charged.','آپ سے چارج نہیں ہوا۔'):T('Your bank declined the payment. Try another payment method.','آپ کے بینک نے ادائیگی مسترد کی۔ دوسرا طریقہ آزمائیں۔')}</p><button class="btn pri blk" data-act="retry">${T('Try again','دوبارہ کوشش')}</button><button class="btn ghost blk" data-go="${S.ctx==='onboard'?'plan':'subscription'}">${T('Back','واپس')}</button></div>`}
+ return{bare:1,h:head+body}};
+
+SC.paywall=()=>({h:`<div class="col" style="gap:20px;padding-top:40px;align-items:center;text-align:center"><span class="av b-red" style="width:60px;height:60px;border-radius:20px">${ic('lock','l')}</span><div class="col gap8"><h1 class="t1">${T('Your subscription ended','آپ کی سبسکرپشن ختم')}</h1><p class="sub" style="margin-inline:auto">${T('Your shop data is safe. You can look at everything and export it. Selling is paused until you subscribe.','آپ کا ڈیٹا محفوظ ہے۔ سب کچھ دیکھ اور ایکسپورٹ کر سکتے ہیں۔ سبسکرائب کرنے تک فروخت رکی ہے۔')}</p></div>
+ <div class="col gap12" style="width:100%"><button class="btn pri blk" data-act="resub">${T('Subscribe again','دوبارہ سبسکرائب')}</button><button class="btn sec blk" data-act="restore">${T('Restore purchases','خریداری بحال کریں')}</button><button class="btn ghost blk" data-act="toast" data-arg="${T('Excel export ready','ایکسل ایکسپورٹ تیار')}">${T('Export my data','میرا ڈیٹا ایکسپورٹ')}</button><button class="btn ghost blk" data-go="home">${T('View my shop, read-only','دکان دیکھیں، صرف پڑھنے کے لیے')}</button></div>
+ <div class="m3 xs">${T('Only the shop owner can subscribe. Staff: ask the owner.','صرف مالک سبسکرائب کر سکتا ہے۔ اسٹاف: مالک سے کہیں۔')}</div></div>`});
+
+SC['printer-settings']=()=>{const r=S.rc;const w=r.paper===80?300:236;const foot=r.lang==='en'?'Thank you, visit again':r.lang==='ur'?'شکریہ، دوبارہ تشریف لائیں':'Shukriya! Phir tashreef layein';return{tab:'more',h:`${hd(T('Printer and receipt','پرنٹر اور رسید'),'more')}<div class="col" style="gap:16px">
+ <div class="card pad rowx"><span class="av b-blue">${ic('printer')}</span><div class="grow"><b>MPT-II 58mm</b><div class="m3 sm">${S.printer?T('Connected','جڑا ہوا'):T('Not connected','جڑا نہیں')}</div></div><button class="btn sec sm" data-go="printer">${S.printer?T('Change','بدلیں'):T('Connect','جوڑیں')}</button></div>
+ <div class="pp" style="width:${w}px;max-width:100%"><div class="c">${r.logo?'<div style="width:34px;height:34px;border-radius:8px;background:#1a1a1a;color:#fff;display:grid;place-items:center;margin:0 auto 6px;font:700 17px Geist,sans-serif">R</div>':''}<b style="font-size:14px">${esc(r.name)}</b><br>${esc(r.addr)}</div><div class="d"></div><div class="r"><span>Bill #1049</span><span>14 Nov</span></div><div class="d"></div><div>Atta 10kg</div><div class="r"><span>1 x 1450</span><span>1450</span></div><div>Cooking Oil 1L</div><div class="r"><span>2 x 540</span><span>1080</span></div><div class="d"></div><div class="r" style="font-size:14px"><b>TOTAL</b><b>Rs 2530</b></div>${r.bal?'<div class="r"><span>Khata balance</span><span>Rs 12400</span></div>':''}<div class="d"></div><div class="c" style="${r.lang==='en'?'':"font-family:'Noto Naskh Arabic',monospace;font-size:13px"}">${esc(r.foot||foot)}</div></div>
+ <div class="field"><label>${T('Paper width','کاغذ کی چوڑائی')}</label>${cr([['58','58 mm'],['80','80 mm']],String(r.paper),'rcp')}</div>
+ ${fld('rcn',T('Shop name on receipt','رسید پر دکان کا نام'),esc(r.name),'','oninput="rcSet(\'name\',this.value)"')}${fld('rca',T('Address and phone','پتہ اور فون'),esc(r.addr),'','oninput="rcSet(\'addr\',this.value)"')}${fld('rcf',T('Footer message','آخری پیغام'),'',foot,'oninput="rcSet(\'foot\',this.value)"')}
+ <div class="field"><label>${T('Receipt language','رسید کی زبان')}</label>${cr([['both',T('Urdu and English','اردو اور انگریزی')],['en','English'],['ur','اردو']],r.lang,'rcl')}</div>
+ <div class="card" style="padding:2px 16px">${[['logo',T('Print shop logo','لوگو پرنٹ کریں')],['bal',T('Show khata balance','کھاتہ بیلنس دکھائیں')],['auto',T('Print after every sale','ہر فروخت پر پرنٹ')]].map(x=>`<div class="li"><span class="grow">${x[1]}</span>${sw('rc:'+x[0],r[x[0]])}</div>`).join('')}<div class="li"><span class="grow">${T('Copies','کاپیاں')}</span>${stk('rcc','x',r.copies)}</div></div>
+ <button class="btn sec blk" data-act="toast" data-arg="${S.printer?T('Test receipt sent','ٹیسٹ رسید بھیجی'):T('Connect a printer first','پہلے پرنٹر جوڑیں')}">${ic('printer','s')} ${T('Print test receipt','ٹیسٹ رسید پرنٹ')}</button></div>`}};
+
+SC.returns=()=>{const L=[{id:1,q:1},{id:2,q:2},{id:3,q:1}];const tot=L.reduce((a,l)=>a+(S.ret[l.id]||0)*P.find(p=>p.id===l.id).p,0);return{tab:'more',h:`${hd(T('Sale return','فروخت واپسی'),'more')}<div class="col" style="gap:16px">
+ <label class="inwrap">${ic('search','s')}<input placeholder="${T('Bill number or customer','بل نمبر یا گاہک')}" value="#1042" aria-label="Find bill"></label>
+ <div class="card pad rowx sp"><div><b>#1042 ${T('Walk-in','عام گاہک')}</b><div class="m3 sm">12 Nov · ${T('Cash','نقد')}</div></div><b class="num">${rs(3070)}</b></div>
+ <div class="col gap8"><b class="t2">${T('Items to return','واپس کے آئٹمز')}</b><div class="card" style="padding:2px 16px">${L.map(l=>{const p=P.find(x=>x.id===l.id);const n=S.ret[l.id]||0;return`<div class="li">${ck(n>0,'retc',l.id)}<div class="grow"><b>${pn(p)}</b><div class="m3 sm">${T('Bought','خریدا')} ${l.q} · ${rs(p.p)}</div></div>${n?stk('retq',l.id,n):''}</div>`}).join('')}</div></div>
+ <div class="field"><label>${T('Refund as','واپسی کیسے')}</label>${cr([['cash',T('Cash back','نقد واپس')],['khata',T('Khata credit','کھاتے میں')],['swap',T('Exchange','تبدیلی')]],S.rfm,'rfm')}</div>
+ <div class="field"><label>${T('Reason','وجہ')}</label>${cr([['Wrong item',T('Wrong item','غلط آئٹم')],['Damaged',T('Damaged','خراب')],['Changed mind',T('Changed mind','ارادہ بدلا')]],S.rfr,'rfr')}</div>
+ <div class="card pad rowx sp"><b class="t2">${T('Refund total','کل واپسی')}</b><b class="big" style="font-size:26px">${rs(tot)}</b></div>
+ ${save(T('Confirm return','واپسی تصدیق'),'doret',!tot)}</div>`}};
+
+SC['product-detail']=()=>{const p=P.find(x=>x.id===S.pd)||P[0];const mg=p.p-p.c;return{tab:'prod',h:`${hd(pn(p),'products',`<button class="ib" data-act="editp" aria-label="Edit">${ic('list','s')}</button>`)}<div class="col" style="gap:16px">
+ <div class="shell"><div class="core"><div class="rowx sp"><span class="lab">${T('In stock','موجود')}</span>${p.s<=p.min?`<span class="badge b-red">${T('Low','کم')}</span>`:`<span class="badge b-grn">${T('Healthy','ٹھیک')}</span>`}</div><div class="big" style="margin-block:6px 12px">${p.s}</div><div class="pgm ${p.s<=p.min?'bad':''}"><i style="width:${Math.min(100,p.s/(p.min*3)*100)}%"></i></div><div class="m3 xs" style="margin-top:8px">${T('Alert below','الرٹ حد')} ${p.min}</div></div></div>
+ <div class="card grid3"><div class="stat"><span class="m3 xs">${T('Sale price','فروخت')}</span><b class="num">${rs(p.p)}</b></div><div class="stat"><span class="m3 xs">${T('Cost','لاگت')}</span><b class="num">${rs(p.c)}</b></div><div class="stat"><span class="m3 xs">${T('Profit','منافع')}</span><b class="num" style="color:var(--accent)">${Math.round(mg/p.p*100)}%</b></div></div>
+ <div class="card" style="padding:2px 16px"><div class="li" style="min-height:52px"><span class="grow mut">${T('Barcode','بارکوڈ')}</span><span class="mono" dir="ltr">${p.code}</span></div><div class="li" style="min-height:52px"><span class="grow mut">${T('Profit per unit','فی یونٹ منافع')}</span><b class="num">${rs(mg)}</b></div></div>
+ <div class="col gap8"><b class="t2">${T('Recent movement','حالیہ حرکت')}</b><div class="card" style="padding:2px 16px">${[['Sale #1048','-1'],['Purchase #212','+24'],['Sale #1041','-2']].map(m=>`<div class="li" style="min-height:52px"><span class="grow">${m[0]}</span><b class="num">${m[1]}</b></div>`).join('')}</div></div>
+ <div class="grid2"><button class="btn pri" data-act="adjp">${T('Adjust stock','اسٹاک ایڈجسٹ')}</button><button class="btn sec" data-act="toast" data-arg="${T('Label sent to printer','لیبل پرنٹر کو بھیجا')}">${ic('printer','s')} ${T('Print label','لیبل')}</button></div>
+ <button class="btn ghost blk" style="color:var(--red-fg)" data-act="toast" data-arg="${T('Item archived. Past sales are kept.','آئٹم آرکائیو۔ پرانی فروخت محفوظ۔')}">${T('Archive item','آئٹم آرکائیو کریں')}</button></div>`}};
+
+SC['app-settings']=()=>({tab:'more',h:`${hd(T('Settings','ترتیبات'),'more')}<div class="col" style="gap:16px">
+ <button class="card pad rowx" style="width:100%" data-act="toast" data-arg="${T('Shop profile form opens','دکان پروفائل فارم کھلے گا')}"><div class="av" style="background:var(--fg);color:var(--bg)">RG</div><span class="grow"><b>${T('Rashid General Store','راشد جنرل اسٹور')}</b><div class="m3 sm">Main Market, Gulberg · Lahore</div></span>${ic('chev','s flip m3')}</button>
+ <div class="card" style="padding:2px 16px"><div class="li"><span class="grow">${T('Language','زبان')}</span><div class="seg"><button class="${S.lang==='en'?'on':''}" data-act="lang" data-arg="en">English</button><button class="${S.lang==='ur'?'on':''}" data-act="lang" data-arg="ur">اردو</button></div></div></div>
+ <div class="col gap8"><div class="lab">${T('Notifications','نوٹیفکیشن')}</div><div class="card" style="padding:2px 16px">${[['nlow',T('Low stock and expiry','کم اسٹاک اور ایکسپائری')],['nsum',T('Daily summary on WhatsApp at 9pm','روزانہ رات 9 بجے واٹس ایپ خلاصہ')],['nsnd',T('Sound on every sale','ہر فروخت پر آواز')]].map(r=>`<div class="li"><span class="grow">${r[1]}</span>${sw(r[0],S.tog[r[0]])}</div>`).join('')}</div></div>
+ <div class="col gap8"><div class="lab">${T('Security','سیکیورٹی')}</div><div class="card" style="padding:2px 16px"><div class="li"><div class="grow"><b>${T('App lock PIN','ایپ لاک پن')}</b><div class="m3 sm">${T('Ask for PIN when the app opens','ایپ کھولتے وقت پن مانگیں')}</div></div>${sw('lock',S.tog.lock)}</div></div></div>
+ <button class="btn ghost blk" style="color:var(--red-fg)" data-go="lang">${T('Log out','لاگ آؤٹ')}</button></div>`});
+
+const LOOSE=[['Sugar','چینی',155],['Basmati Rice','باسمتی چاول',370],['Daal Chana','دال چنا',330],['Tomato','ٹماٹر',120],['Onion','پیاز',90]];
+SC.weigh=()=>{const it=LOOSE[S.wi];const g=amt();const price=Math.round(it[2]*g/1000);return{tab:'sell',h:`${hd(T('Weigh item','وزن کریں'),'sell')}<div class="col" style="gap:14px">
+ <div class="chips">${LOOSE.map((x,i)=>`<button class="chip ${S.wi===i?'on':''}" data-act="wi" data-arg="${i}">${T(x[0],x[1])}</button>`).join('')}</div>
+ <div class="col" style="align-items:center;gap:2px;padding-block:4px"><span class="lab">${T('Weight in grams','وزن گرام میں')}</span><div class="big" style="font-size:44px">${g.toLocaleString('en-IN')} <span class="m3" style="font-size:20px;letter-spacing:0">g</span></div><div class="m3 sm">${(g/1000).toFixed(2)} kg · ${rs(it[2])} / kg</div></div>
+ <div class="card pad rowx sp"><span class="mut">${T('Price','قیمت')}</span><b class="big" style="font-size:28px;color:var(--accent)">${rs(price)}</b></div>
+ <div class="chips" style="justify-content:center;margin-inline:0;padding-inline:0">${[250,500,1000,2000].map(n=>`<button class="chip" data-act="wq" data-arg="${n}">${n>=1000?n/1000+' kg':n+' g'}</button>`).join('')}</div>
+ ${kp()}${save(T('Add to cart','کارٹ میں ڈالیں'),'wadd',!g)}</div>`}};
+
+/* ---------- admin ---------- */
+const ADM=[['admin-overview','Overview','chart'],['admin-shops','Shops','store'],['admin-reports','Reports','receipt'],['admin-payments','Subscriptions','wallet'],['admin-plans','Plans','tag'],['admin-templates','Templates','list']];
+const SHOPS=[
+{id:1,n:'Rashid General Store',city:'Lahore',cat:'grocery',plan:'Standard',st:'Active',last:'Today',s:48320,b:61,k:184500,u:3,sync:'2 min ago',since:'Mar 2026'},
+{id:2,n:'Bismillah Bakers',city:'Karachi',cat:'bakery',plan:'Basic',st:'Trial',last:'Today',s:31400,b:88,k:6200,u:1,sync:'11 min ago',since:'Nov 2026'},
+{id:3,n:'Al-Madina Dairy',city:'Faisalabad',cat:'milk',plan:'Standard',st:'Active',last:'Yesterday',s:22900,b:54,k:41800,u:2,sync:'Yesterday',since:'Jun 2026'},
+{id:4,n:'Step Up Footwear',city:'Multan',cat:'shoes',plan:'Pro',st:'Active',last:'Today',s:67200,b:23,k:12000,u:4,sync:'1 h ago',since:'Apr 2026'},
+{id:5,n:'Care Medical Store',city:'Islamabad',cat:'pharmacy',plan:'Pro',st:'Billing issue',last:'4 days ago',s:54100,b:72,k:19500,u:3,sync:'4 days ago',since:'Feb 2026'},
+{id:6,n:'Fresh Mandi',city:'Lahore',cat:'fruit',plan:'Basic',st:'Trial',last:'Today',s:18700,b:96,k:3400,u:1,sync:'25 min ago',since:'Nov 2026'},
+{id:7,n:'Tech Zone Mobiles',city:'Peshawar',cat:'mobile',plan:'Standard',st:'Active',last:'2 days ago',s:83600,b:19,k:27300,u:2,sync:'2 days ago',since:'Aug 2026'},
+{id:8,n:'Noor Hardware',city:'Gujranwala',cat:'hardware',plan:'Basic',st:'Suspended',last:'19 days ago',s:0,b:0,k:88000,u:1,sync:'19 days ago',since:'Jan 2026'}];
+SHOPS.forEach(x=>x.store=[2,4,6].includes(x.id)?'App Store':'Google Play');
+const catName=k=>(CATS.find(c=>c.k===k)||{n:['Other']}).n[0];
+const shop=()=>SHOPS.find(x=>x.id===S.shopId)||SHOPS[0];
+const ser=sh=>S.shr==='7'?[.62,.58,.74,.68,.86,.9,1].map(m=>Math.round(sh.s*m)):[.92,.97,1.02,1.09].map(m=>Math.round(sh.s*7*.9*m));
+const money=n=>n>=100000?'Rs '+(n/100000).toFixed(1)+'L':rs(n);
+const kfmt=n=>n>=1000?(n/1000)+'k':n;
+const PAY=[['Care Medical Store','Pro, monthly',1500,'JazzCash','14 Nov 09:12'],['Bismillah Bakers','Basic, yearly',5000,'Bank slip','14 Nov 08:40'],['Fresh Mandi','Basic, monthly',500,'Easypaisa','13 Nov 19:05']];
+const PLANS=[{n:'Basic',price:500,users:'1',prod:'500',cat:'No',xl:'No',sms:'0',gp:'dukaan_basic_monthly',ap:'dukaan_basic_monthly'},{n:'Standard',price:900,users:'3',prod:'Unlimited',cat:'No',xl:'Yes',sms:'100',gp:'dukaan_standard_monthly',ap:'dukaan_standard_monthly'},{n:'Pro',price:1500,users:'10',prod:'Unlimited',cat:'Yes',xl:'Yes',sms:'500',gp:'dukaan_pro_monthly',ap:'dukaan_pro_monthly'}];
+const stc={Active:'b-grn',Trial:'b-blue','Billing issue':'b-yel',Suspended:'b-red'};
+const adminView=()=>{const s=S.screen;let h='';
+ if(s==='admin-overview'){const mrr=[22,27,31,38,44,51];h=`<div><h2 class="t1" style="font-size:24px">Overview</h2><div class="m3 sm">Sample numbers for the prototype</div></div>
+  <div class="kpis"><div><span class="lab">Active shops</span><div class="big" style="font-size:28px;margin-top:6px">1,284</div></div><div><span class="lab">Monthly revenue</span><div class="big" style="font-size:28px;margin-top:6px">Rs 5.1L</div></div><div><span class="lab">On trial</span><div class="big" style="font-size:28px;margin-top:6px">212</div></div><div><span class="lab">Churn</span><div class="big" style="font-size:28px;margin-top:6px">2.8%</div></div></div>
+  <div class="grid2" style="gap:18px;align-items:start"><div class="card pad col gap12"><b class="t2">Monthly revenue, thousands</b><div class="bars" style="height:120px">${mrr.map((v,i)=>`<i class="${i===5?'hot':''}" style="height:${v/60*100}%"></i>`).join('')}</div><div class="bl">${['Jun','Jul','Aug','Sep','Oct','Nov'].map(x=>`<span>${x}</span>`).join('')}</div></div>
+  <div class="card pad col gap12"><b class="t2">Shops by type</b>${[['Grocery',38],['Bakery',14],['Milk',12],['Shoes',9],['Pharmacy',8],['Other',19]].map(r=>`<div class="hbar"><span class="mut">${r[0]}</span><div class="pgm"><i style="width:${r[1]/38*100}%"></i></div><span class="num m3">${r[1]}%</span></div>`).join('')}</div></div>`}
+ if(s==='admin-shops'){const fl=['all','Active','Trial','Billing issue','Suspended'];const L=SHOPS.filter(x=>S.shf==='all'||x.st===S.shf);
+  h=`<div class="rowx sp wrap"><div><h2 class="t1" style="font-size:24px">Shops</h2><div class="m3 sm">Open a shop to change status, template and plan, or to see its reports</div></div><label class="inwrap" style="width:220px">${ic('search','s')}<input placeholder="Search shops" aria-label="Search shops" oninput="shopFilter(this.value)"></label><button class="btn pri sm" data-go="admin-add-shop">${ic('plus','s')} Add shop</button></div>
+  <div class="chips" style="margin-inline:0;padding-inline:0;flex-wrap:wrap">${fl.map(f=>`<button class="chip ${S.shf===f?'on':''}" data-act="shf" data-arg="${f}">${f==='all'?'All':f} <span class="num" style="opacity:.6">${f==='all'?SHOPS.length:SHOPS.filter(x=>x.st===f).length}</span></button>`).join('')}</div>
+  ${S.anote?`<div class="note">${ic('check','s')}<span>${S.anote}</span></div>`:''}
+  <div class="tw"><table><thead><tr><th>Shop</th><th>Template</th><th>Plan</th><th>Store</th><th>Status</th><th>Access</th><th>30 day sales</th><th>Last active</th></tr></thead><tbody id="shb">${L.map(r=>`<tr><td><button data-act="shop" data-arg="${r.id}" style="text-align:start"><b>${r.n}</b><div class="m3 xs">${r.city}</div></button></td><td>${catName(r.cat)}</td><td>${r.plan}</td><td>${r.store}</td><td><span class="badge ${stc[r.st]}">${r.st}</span></td><td>${sw('shon:'+r.id,r.st!=='Suspended')}</td><td class="num">${r.s?money(Math.round(r.s*30*.9)):'-'}</td><td class="m3">${r.last}</td></tr>`).join('')}</tbody></table></div>`}
+ if(s==='admin-shop'){const r=shop();const w=ser(r);const mx=Math.max(...w,1);const top=S.shr==='7'?10000:50000;const ax=Math.max(top,Math.ceil(mx/top)*top);const tot=w.reduce((a,b)=>a+b,0);const bills=Math.round(r.b*(S.shr==='7'?6.4:27));const lb=S.shr==='7'?['Mon','Tue','Wed','Thu','Fri','Sat','Sun']:['W1','W2','W3','W4'];
+  const pm=[['Cash',60],['JazzCash',16],['Easypaisa',8],['Bank',4],['Khata',12]];const cl=['var(--accent)','var(--blue-fg)','var(--yel-fg)','var(--fg-3)','var(--red-fg)'];
+  h=`<div class="rowx" style="gap:12px;flex-wrap:wrap"><button class="ib" data-go="admin-shops" aria-label="Back to shops">${ic('back')}</button><div class="grow"><h2 class="t1" style="font-size:24px">${r.n}</h2><div class="m3 sm">${r.city} · since ${r.since} · ${r.u} users</div></div><span class="badge ${stc[r.st]}">${r.st}</span></div>
+  ${S.anote?`<div class="note">${ic('check','s')}<span>${S.anote}</span></div>`:''}
+  <div class="card pad col" style="gap:18px"><b class="t2">Manage shop</b>
+   <div class="field"><label>Subscription, from ${r.store}</label><div class="rowx wrap" style="gap:8px"><span class="badge ${stc[r.st]}">${r.st}</span><span class="m3 sm">${r.plan} · renews 02 Dec · dukaan_${r.plan.toLowerCase()}_monthly</span></div><div class="m3 xs">Status comes from the store and cannot be edited here.</div></div>
+   <div class="field"><label>Access override</label><div class="seg" style="align-self:flex-start;flex-wrap:wrap">${[['none','Follow subscription'],['comp','Complimentary 30 days'],['susp','Suspended']].map(x=>`<button class="${(r.ovr||'none')===x[0]?'on':''}" data-act="ovr" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div><div class="m3 xs">Suspended shops open read-only and can still export their data. Nothing is deleted.</div></div>
+   <div class="grid2" style="gap:14px"><div class="field"><label for="tpl">Business template</label><select class="inp" id="tpl" onchange="setShop('cat',this.value)">${CATS.map(c=>`<option value="${c.k}" ${c.k===r.cat?'selected':''}>${c.n[0]}</option>`).join('')}</select></div>
+   <div class="field"><label for="pln">Plan, set by the store</label><select class="inp" id="pln" disabled>${['Basic','Standard','Pro'].map(x=>`<option ${x===r.plan?'selected':''}>${x}</option>`).join('')}</select></div></div>
+   <div class="m3 xs">Template changes reach the app on its next sync. Products, sales and khata stay as they are.</div>
+   <div class="rowx wrap" style="gap:8px"><button class="btn sec sm" data-act="trial">Grant 7 free days</button><button class="btn sec sm" data-act="remind">Send billing message</button><button class="btn ghost sm" data-act="noteopen">Add support note</button></div>${S.noteOpen?`<div class="field"><label for="snote">Support note</label><textarea class="inp" id="snote" rows="3" style="height:auto;padding:12px" placeholder="What happened and what was agreed"></textarea><div class="rowx"><button class="btn pri sm" data-act="notesave">Save note</button><button class="btn ghost sm" data-act="noteopen">Cancel</button></div></div>`:''}${(r.notes||[]).map(n=>`<div class="sm mut" style="border-top:1px solid var(--line);padding-top:10px">${n}</div>`).join('')}</div>
+  <div class="rowx sp wrap"><b class="t2">Reports</b><div class="seg">${[['7','Last 7 days'],['30','Last 30 days']].map(x=>`<button class="${S.shr===x[0]?'on':''}" data-act="shr" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div></div>
+  ${r.s?`<div class="kpis"><div><span class="lab">Sales</span><div class="big" style="font-size:24px;margin-top:6px">${money(tot)}</div></div><div><span class="lab">Bills</span><div class="big" style="font-size:24px;margin-top:6px">${bills.toLocaleString('en-IN')}</div></div><div><span class="lab">Average bill</span><div class="big" style="font-size:24px;margin-top:6px">${rs(tot/bills)}</div></div><div><span class="lab">Khata due</span><div class="big" style="font-size:24px;margin-top:6px">${money(r.k)}</div></div></div>
+  <div class="card pad col gap12"><b class="t2">Sales ${S.shr==='7'?'by day':'by week'}</b><div class="rowx" style="align-items:stretch;gap:8px"><div class="col" style="justify-content:space-between;height:130px;padding-bottom:20px;font-size:10.5px;color:var(--fg-3);text-align:end;gap:0"><span>${kfmt(ax)}</span><span>${kfmt(ax/2)}</span><span>0</span></div><div class="grow"><div class="bars" style="height:130px;border-bottom:1px solid var(--line-2)" role="img" aria-label="Sales chart">${w.map((v,i)=>`<i class="${i===w.length-1?'hot':''}" style="height:${v/ax*100}%"></i>`).join('')}</div><div class="bl">${lb.map(x=>`<span>${x}</span>`).join('')}</div></div></div></div>
+  <div class="grid2" style="gap:18px;align-items:start"><div class="card pad col gap12"><b class="t2">How customers paid</b><div style="display:flex;height:10px;border-radius:8px;overflow:hidden;gap:2px">${pm.map((x,i)=>`<i style="width:${x[1]}%;background:${cl[i]}"></i>`).join('')}</div><div class="col gap8 sm">${pm.map((x,i)=>`<div class="rowx sp"><span class="rowx" style="gap:8px"><i style="width:8px;height:8px;border-radius:50%;background:${cl[i]}"></i>${x[0]}</span><span class="num mut">${x[1]}%</span></div>`).join('')}</div></div>
+  <div class="card pad col gap8"><b class="t2">Top items</b>${[[1,.9],[2,.7],[8,.62],[3,.5]].map(([id,m])=>`<div class="rowx sp"><span class="mut">${P.find(x=>x.id===id).n}</span><span class="num">${Math.round(bills*m)} sold</span></div>`).join('')}</div></div>`:`<div class="card pad m3" style="text-align:center;padding-block:36px">No sales in this period. The shop is suspended.</div>`}
+  <div class="card" style="padding:2px 16px"><div class="li" style="min-height:52px"><span class="grow mut">Last sync</span><b>${r.sync}</b></div><div class="li" style="min-height:52px"><span class="grow mut">App version</span><b class="mono">1.0.3 (android)</b></div><div class="li" style="min-height:52px"><span class="grow mut">Subscription</span><b>${r.plan}, ${r.st==='Billing issue'?'billing retry, 4 days of grace left':r.st==='Trial'?'trial ends in 9 days':r.st==='Suspended'?'stopped':'renews 02 Dec'}</b></div></div>`}
+ if(s==='admin-reports'){const act=SHOPS.filter(x=>x.s);const byCat={};act.forEach(x=>{byCat[catName(x.cat)]=(byCat[catName(x.cat)]||0)+x.s*27});const bm=Math.max(...Object.values(byCat));
+  h=`<div><h2 class="t1" style="font-size:24px">Reports</h2><div class="m3 sm">All shops, last 30 days, sample data</div></div>
+  <div class="kpis"><div><span class="lab">Shop sales</span><div class="big" style="font-size:24px;margin-top:6px">${money(act.reduce((a,x)=>a+x.s*27,0))}</div></div><div><span class="lab">Bills</span><div class="big" style="font-size:24px;margin-top:6px">${act.reduce((a,x)=>a+x.b*30,0).toLocaleString('en-IN')}</div></div><div><span class="lab">Khata open</span><div class="big" style="font-size:24px;margin-top:6px">${money(SHOPS.reduce((a,x)=>a+x.k,0))}</div></div><div><span class="lab">Not synced 7+ days</span><div class="big" style="font-size:24px;margin-top:6px">1</div></div></div>
+  <div class="card pad col gap12"><b class="t2">Sales by shop type</b>${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="hbar" style="grid-template-columns:110px 1fr 70px"><span class="mut">${k}</span><div class="pgm"><i style="width:${v/bm*100}%"></i></div><span class="num m3">${money(v)}</span></div>`).join('')}</div>
+  <div class="tw"><table><thead><tr><th>Shop</th><th>Template</th><th>30 day sales</th><th>Bills</th><th>Khata due</th><th>Status</th></tr></thead><tbody>${[...SHOPS].sort((a,b)=>b.s-a.s).map(r=>`<tr><td><button data-act="shop" data-arg="${r.id}"><b>${r.n}</b></button></td><td>${catName(r.cat)}</td><td class="num">${r.s?money(Math.round(r.s*27)):'-'}</td><td class="num">${r.b*30}</td><td class="num">${money(r.k)}</td><td><span class="badge ${stc[r.st]}">${r.st}</span></td></tr>`).join('')}</tbody></table></div>`}
+ if(s==='admin-payments'){const EV=[['Care Medical Store','Google Play','Billing retry','Pro monthly',1500,'14 Nov 09:12','b-yel'],['Bismillah Bakers','App Store','Trial started','Basic yearly',0,'14 Nov 08:40','b-blue'],['Fresh Mandi','Google Play','Trial started','Basic monthly',0,'13 Nov 19:05','b-blue'],['Al-Madina Dairy','Google Play','Renewed','Standard monthly',900,'13 Nov 06:00','b-grn'],['Tech Zone Mobiles','App Store','Upgraded','Standard to Pro',1500,'12 Nov 15:21','b-grn'],['Step Up Footwear','Google Play','Cancelled, ends 02 Dec','Pro monthly',0,'11 Nov 12:02','b-yel'],['Noor Hardware','Google Play','Refunded','Basic monthly',-500,'09 Nov 10:40','b-red']];
+  const L=EV.filter(e=>S.evf==='all'||e[1]===S.evf);const gross=EV.reduce((a,e)=>a+e[4],0);
+  h=`<div><h2 class="t1" style="font-size:24px">Subscriptions</h2><div class="m3 sm">Live events from Google Play and the App Store. Billing is handled by the stores.</div></div>
+  <div class="kpis"><div><span class="lab">Billed, 7 days</span><div class="big" style="font-size:24px;margin-top:6px">${rs(gross)}</div></div><div><span class="lab">Store fee, 15%</span><div class="big" style="font-size:24px;margin-top:6px">${rs(gross*.15)}</div></div><div><span class="lab">You receive</span><div class="big" style="font-size:24px;margin-top:6px">${rs(gross*.85)}</div></div><div><span class="lab">Billing issues</span><div class="big" style="font-size:24px;margin-top:6px">1</div></div></div>
+  <div class="chips" style="margin-inline:0;padding-inline:0">${['all','Google Play','App Store'].map(f=>`<button class="chip ${S.evf===f?'on':''}" data-act="evf" data-arg="${f}">${f==='all'?'All stores':f}</button>`).join('')}</div>
+  <div class="tw"><table><thead><tr><th>Shop</th><th>Store</th><th>Event</th><th>Product</th><th>Amount</th><th>When</th></tr></thead><tbody>${L.map(e=>`<tr><td><b>${e[0]}</b></td><td>${e[1]}</td><td><span class="badge ${e[6]}">${e[2]}</span></td><td class="mut">${e[3]}</td><td class="num">${e[4]<0?'- ':''}${rs(Math.abs(e[4]))}</td><td class="m3">${e[5]}</td></tr>`).join('')}</tbody></table></div>
+  <div class="card pad col gap8"><b class="t2">Store connection</b>${[['Google Play: merchant profile and Play Billing subscriptions','ok'],['Google Play: real-time notifications (Pub/Sub) connected','ok'],['App Store Connect: paid apps agreement and banking','ok'],['App Store: Server Notifications V2 URL set','ok'],['App Store Small Business Program enrolled, 15%','ok'],['Pakistan prices (PKR) set in both stores','todo']].map(r=>`<div class="rowx" style="gap:10px"><span style="color:${r[1]==='ok'?'var(--accent)':'var(--yel-fg)'}">${ic(r[1]==='ok'?'check':'alert','s')}</span><span class="sm ${r[1]==='ok'?'':'mut'}">${r[0]}</span></div>`).join('')}</div>`}
+ if(s==='admin-plans')h=`<div class="rowx sp wrap"><div><h2 class="t1" style="font-size:24px">Plans</h2><div class="m3 sm">Prices live in Play Console and App Store Connect. The app reads limits from here.</div></div><button class="btn pri sm" data-go="admin-add-plan">${ic('plus','s')} Add plan</button></div>${S.anote?`<div class="note">${ic('check','s')}<span>${S.anote}</span></div>`:''}<div class="tw"><table><thead><tr><th>Limit</th>${PLANS.map(x=>`<th>${x.n}</th>`).join('')}</tr></thead><tbody>${[['Price / month, store','price'],['Users','users'],['Products','prod'],['Catalog link','cat'],['Excel export','xl'],['SMS credits','sms'],['Google Play product','gp'],['App Store product','ap']].map(r=>`<tr><td class="mut">${r[0]}</td>${PLANS.map(x=>`<td class="${r[1]==='gp'||r[1]==='ap'?'mono':''}" style="${r[1]==='gp'||r[1]==='ap'?'font-size:11.5px':''}">${r[1]==='price'?rs(x.price):(x[r[1]]||'-')}</td>`).join('')}</tr>`).join('')}</tbody></table></div><div class="m3 xs">Yearly products use the same name with _yearly. A plan needs both store products before shops can buy it.</div>`;
+ if(s==='admin-add-plan')h=`<div class="rowx" style="gap:12px"><button class="ib" data-go="admin-plans" aria-label="Back">${ic('back')}</button><div><h2 class="t1" style="font-size:24px">Add plan</h2><div class="m3 sm">Create the products in both stores first, then link them here</div></div></div>
+  <div class="card pad col" style="gap:16px;max-width:560px"><div class="grid2" style="gap:14px">${fld('apn','Plan name','','For example, Starter')}${fld('app','Store price per month, Rs','','700','inputmode="numeric"')}${fld('apu','Users','','2','inputmode="numeric"')}${fld('apr','Products','','1000')}${fld('aps','SMS credits','','50','inputmode="numeric"')}</div>
+  <div class="grid2" style="gap:14px">${fld('apg','Google Play product ID','','dukaan_starter_monthly','dir="ltr"')}${fld('apa','App Store product ID','','dukaan_starter_monthly','dir="ltr"')}</div>
+  <div class="card" style="padding:2px 16px"><div class="li"><span class="grow">Online catalog link</span>${sw('apcat',S.tog.apcat)}</div><div class="li"><span class="grow">Excel export</span>${sw('apxl',S.tog.apxl)}</div></div><div class="rowx"><button class="btn pri" data-act="saveplan">Save plan</button><button class="btn ghost" data-go="admin-plans">Cancel</button></div></div>`;
+ if(s==='admin-add-shop')h=`<div class="rowx" style="gap:12px"><button class="ib" data-go="admin-shops" aria-label="Back">${ic('back')}</button><div><h2 class="t1" style="font-size:24px">Add shop</h2><div class="m3 sm">For shopkeepers you onboard in person. They log in with this phone number.</div></div></div>
+  <div class="card pad col" style="gap:16px;max-width:560px"><div class="grid2" style="gap:14px">${fld('asn','Shop name','','For example, Hamza Kiryana')}${fld('aso','Owner phone','','03XX XXXXXXX','inputmode="tel" dir="ltr"')}${fld('asc','City','','Lahore')}
+  <div class="field"><label for="ast">Template</label><select class="inp" id="ast">${CATS.map(c=>`<option value="${c.k}">${c.n[0]}</option>`).join('')}</select></div>
+  <div class="field"><label for="asp">Plan</label><select class="inp" id="asp">${PLANS.map(x=>`<option>${x.n}</option>`).join('')}</select></div>
+  <div class="field"><label for="asd">Complimentary access</label><select class="inp" id="asd"><option>30 days</option><option>60 days</option><option>90 days</option></select></div></div>
+  <div class="m3 xs">The owner gets an SMS with the app link and a login code. After this period they subscribe inside the app through the store.</div><div class="rowx"><button class="btn pri" data-act="saveshop">Create shop</button><button class="btn ghost" data-go="admin-shops">Cancel</button></div></div>`;
+ if(s==='admin-templates'){const c=CATS.find(x=>x.k===S.tpk)||CATS[0];const j=JSON.stringify({key:c.k,saleMode:c.mode[0],units:c.un.split(' · '),barcode:!!c.bc,expiryAlerts:!!c.ex,starter:c.st[0].split(', '),receipt:{paper:'58mm',lang:['ur','en']}},null,2);
+  h=`<div class="rowx sp wrap"><div><h2 class="t1" style="font-size:24px">Business templates</h2><div class="m3 sm">Edit a shop type here. Shops get it on their next sync, no app update.</div></div><button class="btn pri sm" data-act="newtpl">${ic('plus','s')} New template</button></div>${S.anote?`<div class="note">${ic('check','s')}<span>${S.anote}</span></div>`:''}
+  <div class="grid2" style="gap:18px;align-items:start;grid-template-columns:minmax(0,200px) minmax(0,1fr)"><div class="card" style="padding:2px 8px">${CATS.map((x,i)=>`<button class="li" style="min-height:48px;padding-inline:8px;border-radius:10px;${x.k===c.k?'background:var(--surface-2)':''}" data-act="tpk" data-arg="${x.k}"><span style="color:var(--accent)">${ic(x.i,'s')}</span><b class="grow" style="font-weight:500;font-size:13px">${x.n[0]}</b><span class="m3 xs mono">v${i%3+1+(S.tv[x.k]||0)}</span></button>`).join('')}</div>
+  <div class="col" style="gap:16px;min-width:0"><div class="card pad col" style="gap:14px">${fld('tn','Template name',esc(c.n[0]),'','onchange="setTpl(\'n\',this.value)"')}${fld('tu','Units',c.un,'','onchange="setTpl(\'un\',this.value)"')}${fld('ts','Starter categories',esc(c.st[0]),'','onchange="setTpl(\'st\',this.value)"')}
+  <div class="li" style="min-height:48px;padding:0"><span class="grow">Barcode scanning on by default</span>${sw('t:bc',c.bc)}</div><div class="li" style="min-height:48px;padding:0"><span class="grow">Expiry alerts on by default</span>${sw('t:ex',c.ex)}</div><div class="rowx"><button class="btn pri sm" data-act="pubtpl">Save and publish</button><span class="m3 xs">Affects ${SHOPS.filter(x=>x.cat===c.k).length} shops</span></div></div><pre class="json">${j}</pre></div></div>`}
+ return`<div class="adm"><aside><div class="rowx" style="padding:4px 10px 16px"><div class="mark" style="width:30px;height:30px;font-size:15px">D</div><b>Dukaan Admin</b></div>${ADM.map(a=>`<button class="${a[0]===s||((s==='admin-shop'||s==='admin-add-shop')&&a[0]==='admin-shops')||(s==='admin-add-plan'&&a[0]==='admin-plans')?'on':''}" data-go="${a[0]}">${ic(a[2],'s')} ${a[1]}</button>`).join('')}</aside><main>${h}</main></div>`};
+
+/* ---------- shell ---------- */
+const NAV=[['Onboarding',[['lang','Language'],['phone','Phone'],['otp','Code'],['shop','Shop details'],['category','Shop type'],['setup','Auto setup'],['plan','Plan'],['printer','Printer']]],
+['Shopkeeper app',[['home','Home'],['sell','New sale'],['cart','Cart'],['pay','Payment'],['receipt','Receipt'],['products','Products'],['add-product','Add product'],['scan','Scan'],['stock','Stock'],['khata','Khata'],['ledger','Ledger'],['reports','Reports'],['more','More'],['purchases','Purchases'],['cash-close','Cash closing'],['staff','Staff']]],
+['More flows',[['alerts','Alerts'],['add-customer','Add customer'],['receive','Record entry'],['reminder','Reminder'],['statement','Statement'],['held','Held bills'],['split','Split payment'],['weigh','Weigh item'],['product-detail','Product detail'],['adjust-stock','Adjust stock'],['new-purchase','New purchase'],['po','Purchase order'],['expense','Add expense'],['returns','Sale return'],['add-staff','Add staff'],['catalog','Online catalog'],['loyalty','Loyalty'],['printer-settings','Receipt designer'],['backup','Backup'],['subscription','Subscription'],['pay-plan','Store purchase'],['paywall','Paywall'],['help','Help'],['app-settings','Settings']]],
+['Admin panel',[...ADM.map(a=>[a[0],a[1]]),['admin-add-shop','Add shop'],['admin-add-plan','Add plan']]]];
+const TABS=()=>[['home','home',T('Home','ہوم')],['prod','box',T('Items','آئٹمز')],['sell','cart',T('Sell','فروخت')],['khata','book',T('Khata','کھاتہ')],['more','grid',T('More','مزید')]];
+function drawRail(){$('#rail').innerHTML=NAV.map(g=>`<h6>${g[0]}</h6>`+g[1].map(i=>`<button data-go="${i[0]}" class="${S.screen===i[0]?'on':''}">${i[1]}</button>`).join('')).join('');
+ ['en','ur'].forEach(l=>$('#l-'+l).classList.toggle('on',S.lang===l));['android','ios'].forEach(o=>$('#o-'+o).classList.toggle('on',S.os===o));
+ const dk=document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');$('#t-light').classList.toggle('on',dk==='light');$('#t-dark').classList.toggle('on',dk==='dark')}
+function draw(keep){const st=$('#stage'),old=st.querySelector('.view'),top=keep&&old?old.scrollTop:0;
+ if(S.screen.startsWith('admin-')){st.innerHTML=adminView();drawRail();return}
+ const r=SC[S.screen]();const ur=S.lang==='ur';
+ st.innerHTML=`<div class="phone"><div class="dev ${ur?'ur':''}" dir="${ur?'rtl':'ltr'}"><div class="sb"><span>9:41</span><span class="island"></span><span class="batt"></span></div>
+ <div class="view ${r.tab?'tabbed':''} ${keep?'na':''}">${r.h}</div>${r.tab?`<nav class="tabs">${TABS().map(t=>`<button class="tab ${t[0]==='sell'?'sell':''} ${r.tab===t[0]?'on':''}" data-go="${t[0]==='prod'?'products':t[0]}">${t[0]==='sell'?`<span class="fab">${ic(t[1],'l')}</span>`:ic(t[1])}<span>${t[2]}</span></button>`).join('')}</nav>`:''}
+ ${S.toast?`<div class="toast" role="status">${ic('check','s')}<span>${S.toast}</span></div>`:''}</div></div>`;
+ const v=st.querySelector('.view');[...v.children].forEach((c,i)=>c.style.setProperty('--i',Math.min(i,7)));if(keep)v.scrollTop=top;drawRail()}
+function go(id){if(!SC[id]&&!id.startsWith('admin-'))return;S.screen=id;S.toast='';S.amt='';if(id==='pay-plan')S.buy='sheet';if(['lang','phone','otp','shop','category','setup'].includes(id))S.ctx='onboard';if(id!=='add-product')S.editId=0;if(id!=='admin-shop')S.anote='';try{history.replaceState(null,'','#'+id)}catch(e){}draw(false)}
+let tt;function toast(m){S.toast=m;draw(true);clearTimeout(tt);tt=setTimeout(()=>{S.toast='';const t=document.querySelector('.toast');if(t)t.remove()},2200)}
+function calcM(){const c=+document.getElementById('pc').value||0,s=+document.getElementById('ps').value||0;const m=s-c;document.getElementById('mg').textContent='Rs '+m.toLocaleString('en-IN')+' · '+(s?Math.round(m/s*100):0)+'%'}
+const A={
+ lang:a=>{S.lang=a;draw(true)},
+ theme:a=>{document.documentElement.dataset.theme=a;drawRail()},
+ cat:a=>{S.cat=a;const c=cat();S.tg={barcode:!!c.bc,expiry:!!c.ex};draw(true)},
+ tog:a=>{if(a.startsWith('shon:'))return A.shon(a.slice(5));if(a in S.tg)S.tg[a]=!S.tg[a];else S.tog[a]=!S.tog[a];draw(true)},
+ bill:a=>{S.yearly=a==='y';draw(true)},plan:a=>{S.plan=a;draw(true)},pair:()=>{S.printer=true;draw(true)},toast:a=>toast(a),
+ add:a=>{const id=+a,l=S.cart.find(x=>x.id===id);l?l.q++:S.cart.push({id,q:1});draw(true)},
+ qty:a=>{const[i,d]=a.split(':').map(Number);const l=S.cart.find(x=>x.id===i);l.q+=d;if(l.q<=0)S.cart=S.cart.filter(x=>x!==l);draw(true)},
+ clear:()=>{S.cart=[];draw(true)},cust:a=>{S.cust=+a||null;draw(true)},disc:a=>{S.disc=+a;draw(true)},
+ mode:a=>{S.mode=a;draw(true)},recv:a=>{S.recv=+a;draw(true)},
+ newsale:()=>{S.sp={cash:0,jazz:0,khata:0};S.cart=[{id:1,q:1},{id:2,q:2},{id:3,q:1}];S.disc=0;S.cust=null;S.mode='cash';S.recv=null;go('sell')},
+ pf:a=>{S.pf=a;draw(true)},sf:a=>{S.sf=a;draw(true)},kt:a=>{S.kTab=a;draw(true)},led:a=>{S.led=+a;go('ledger')},period:a=>{S.period=a;draw(true)},
+ scanit:()=>{S.scanN++;S.scan=S.scanN%2?'new':'found';draw(true)},scanagain:()=>{S.scan='idle';draw(true)},
+ addscan:()=>{A.add('3');S.scan='idle';toast(T('Added to cart','کارٹ میں شامل'))},addnew:()=>{S.draftCode='8961002000458';S.scan='idle';go('add-product')},
+ approve:a=>{S.adminOk[a]=1;draw(true)},
+ shf:a=>{S.shf=a;S.anote='';draw(true)},shop:a=>{S.shopId=+a;S.anote='';go('admin-shop')},shr:a=>{S.shr=a;draw(true)},
+ shst:a=>{const r=shop();r.st=a;S.anote=r.n+' is now '+a+'.';draw(true)},
+ shon:a=>{const r=SHOPS.find(x=>x.id===+a);r.st=r.st==='Suspended'?'Active':'Suspended';S.anote=r.n+(r.st==='Active'?' reactivated.':' suspended. Data kept, app is read-only.');draw(true)},
+ trial:()=>{S.anote='7 free days added by Dukaan. No store purchase needed.';draw(true)},remind:()=>{S.anote='Message sent: update your payment method in the store.';draw(true)},remind2:()=>{S.anote='Support note saved.';draw(true)}};
+function setShop(k,v){const r=shop();r[k]=v;S.anote=k==='cat'?r.n+' now uses the '+catName(v)+' template. Applies on next sync.':r.n+' moved to '+v+'.';draw(true)}
+function shopFilter(q){q=q.toLowerCase();document.querySelectorAll('#shb tr').forEach(t=>t.hidden=!t.textContent.toLowerCase().includes(q))}
+const esc=x=>String(x??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const gv=id=>{const e=document.getElementById(id);return e?e.value.trim():''};
+function adjItem(v){S.adj.id=+v;S.adj.q=10;draw(true)}
+function rcSet(k,v){S.rc[k]=v;const p=document.querySelector('.pp');draw(true);const i=document.getElementById(k==='name'?'rcn':k==='addr'?'rca':'rcf');if(i){i.focus();i.setSelectionRange(v.length,v.length)}}
+function setTpl(k,v){const c=CATS.find(x=>x.k===S.tpk);if(k==='n'){c.n[0]=v}else if(k==='un')c.un=v;else c.st[0]=v;S.anote='Draft saved. Publish to send it to shops.';draw(true)}
+Object.assign(A,{
+ key:a=>{if(a==='del')S.amt=S.amt.slice(0,-1);else if(S.amt.length<7)S.amt=(S.amt+a).replace(/^0+(?=\d)/,'');if(S.screen==='split')S.sp[S.spA]=+S.amt||0;draw(true)},
+ pt:a=>{S.pt=a;S.od=a==='sup'?'me':'they';draw(true)},od:a=>{S.od=a;draw(true)},
+ savecust:()=>{const n=gv('cn')||(S.pt==='sup'?'New supplier':'New customer');const ob=+gv('ob')||0;if(S.pt==='sup'){SUPS.push([n,n])}else{C.unshift({id:Date.now()%100000,n,ur:n,d:S.od==='they'?ob:0,last:'14 Nov',area:gv('car')||'Lahore'})}S.kTab=S.pt==='sup'?'sup':'cust';go('khata');toast(n+' '+T('added','شامل'))},
+ rg:a=>{S.rg=a;draw(true)},rm:a=>{S.rm=a;draw(true)},
+ saverec:()=>{const c=curC();const a=amt();const gave=S.rg==='gave';c.d=Math.max(0,c.d+(gave?a:-a));c.e=c.e||[];c.e.push(['14 Nov',gave?'Credit given':'Payment, '+S.rm.toLowerCase(),gave?a:-a]);c.last='14 Nov';go('ledger');toast(gave?T('Credit saved','ادھار محفوظ'):T('Payment saved','ادائیگی محفوظ'))},
+ tone:a=>{S.tone=+a;draw(true)},sendrem:()=>{go('ledger');toast(T('Reminder sent on WhatsApp','واٹس ایپ پر یاد دہانی بھیج دی'))},stp:a=>{S.stp=a;draw(true)},
+ hold:()=>{if(!S.cart.length)return;S.held.push({t:'11:42',c:S.cust,items:S.cart.map(l=>({...l}))});S.cart=[];S.cust=null;S.disc=0;go('held');toast(T('Bill held','بل روکا گیا'))},
+ resume:a=>{const b=S.held.splice(+a,1)[0];S.cart=b.items;S.cust=b.c;go('cart')},dropheld:a=>{S.held.splice(+a,1);draw(true)},
+ spa:a=>{S.spA=a;S.amt=S.sp[a]?String(S.sp[a]):'';draw(true)},fill:()=>{const c=cartCalc();const o=S.sp.cash+S.sp.jazz+S.sp.khata-S.sp[S.spA];S.sp[S.spA]=Math.max(0,c.tot-o);S.amt=String(S.sp[S.spA]);draw(true)},
+ splitok:()=>{S.mode='split';go('receipt')},
+ adt:a=>{S.adj.type=a;draw(true)},adq:a=>{S.adj.q=Math.max(0,S.adj.q+ +a);draw(true)},adw:a=>{S.adj.why=a;draw(true)},
+ adsave:()=>{const a=S.adj,p=P.find(x=>x.id===a.id);p.s=a.type==='add'?p.s+a.q:a.type==='rem'?p.s-a.q:a.q;go('stock');toast(T('Stock updated','اسٹاک اپڈیٹ'))},
+ pq:a=>{const[i,d]=a.split(':').map(Number);const l=S.pu.find(x=>x.id===i);l.q+=d;if(l.q<=0)S.pu=S.pu.filter(x=>x!==l);draw(true)},
+ addlow:()=>{lowL().forEach(p=>{if(!S.pu.find(x=>x.id===p.id))S.pu.push({id:p.id,q:p.min*2-p.s,c:p.c})});draw(true)},pay2:a=>{S.pay2=a;draw(true)},
+ savepu:()=>{S.pu.forEach(l=>{P.find(p=>p.id===l.id).s+=l.q});S.pu=[];go('purchases');toast(T('Purchase saved, stock updated','خریداری محفوظ، اسٹاک اپڈیٹ'))},
+ poc:a=>{a=+a;S.poOff=S.poOff.includes(a)?S.poOff.filter(x=>x!==a):[...S.poOff,a];draw(true)},
+ ecat:a=>{S.ecat=a;draw(true)},efrom:a=>{S.efrom=a;draw(true)},saveexp:()=>{S.expT+=amt();S.expN++;S.amt='';draw(true);toast(T('Expense saved','خرچہ محفوظ'))},
+ role:a=>{S.role=a;draw(true)},savestaff:()=>{go('staff');toast(T('Invite sent','دعوت بھیج دی'))},
+ ord:a=>{const[i,v]=a.split(':');S.ord[i]=v;draw(true)},lq:a=>{const[k,d]=a.split(':');S.loy[k]=Math.max(1,S.loy[k]+ +d);draw(true)},
+ bkrun:()=>{S.bk='run';draw(true);setTimeout(()=>{S.bk='done';if(S.screen==='backup')draw(true)},1800)},faq:a=>{S.faq=S.faq===+a?-1:+a;draw(true)},
+ pm:a=>{S.pm=a;draw(true)},slipph:()=>{S.slipPh=true;draw(true)},slipsub:()=>{S.slip='pending';draw(true)},
+ rcp:a=>{S.rc.paper=+a;draw(true)},rcl:a=>{S.rc.lang=a;draw(true)},rcc:a=>{S.rc.copies=Math.max(1,Math.min(3,S.rc.copies+ +a.split(':')[1]));draw(true)},
+ retc:a=>{a=+a;S.ret[a]=S.ret[a]?0:1;draw(true)},retq:a=>{const[i,d]=a.split(':').map(Number);const m={1:1,2:2,3:1}[i];S.ret[i]=Math.max(0,Math.min(m,(S.ret[i]||0)+d));draw(true)},rfm:a=>{S.rfm=a;draw(true)},rfr:a=>{S.rfr=a;draw(true)},
+ doret:()=>{S.ret={};go('more');toast(T('Return saved. Stock updated.','واپسی محفوظ۔ اسٹاک اپڈیٹ۔'))},
+ pd:a=>{S.pd=+a;go('product-detail')},editp:()=>{S.editId=S.pd;go('add-product')},adjp:()=>{S.adj.id=S.pd;S.adj.q=10;go('adjust-stock')},
+ wi:a=>{S.wi=+a;draw(true)},wq:a=>{S.amt=String(+a);draw(true)},wadd:()=>{const it=LOOSE[S.wi];const g=amt();go('sell');toast(`${g} g ${it[0]}, ${rs(it[2]*g/1000)} ${T('added','شامل')}`)},
+ /* admin */
+ rej:a=>{S.rej=+a;S.rejWhy='';draw(true)},rejwhy:a=>{S.rejWhy=a;draw(true)},rejok:a=>{S.adminOk[a]='rej';S.rej=-1;S.anote=PAY[a][0]+' was told: '+S.rejWhy+'.';draw(true)},
+ noteopen:()=>{S.noteOpen=!S.noteOpen;draw(true)},notesave:()=>{const t=gv('snote');const r=shop();if(t){(r.notes=r.notes||[]).unshift('Today: '+t)}S.noteOpen=false;S.anote='Support note saved.';draw(true)},
+ saveplan:()=>{PLANS.push({n:gv('apn')||'New plan',price:+gv('app')||700,users:gv('apu')||'2',prod:gv('apr')||'1000',cat:S.tog.apcat?'Yes':'No',xl:S.tog.apxl?'Yes':'No',sms:gv('aps')||'0',gp:gv('apg')||'dukaan_new_monthly',ap:gv('apa')||'dukaan_new_monthly'});S.anote='Plan added.';go('admin-plans');S.anote='Plan added. New shops can pick it now.';draw(true)},
+ saveshop:()=>{const n=gv('asn')||'New shop';SHOPS.unshift({id:Date.now()%100000,n,city:gv('asc')||'Lahore',cat:document.getElementById('ast').value,plan:document.getElementById('asp').value,st:'Trial',last:'Today',s:0,b:0,k:0,u:1,sync:'Never',since:'Nov 2026'});S.shf='all';go('admin-shops');S.anote=n+' created. Login code sent by SMS.';draw(true)},
+ tpk:a=>{S.tpk=a;S.anote='';draw(true)},
+ newtpl:()=>{const k='t'+Date.now()%10000;CATS.push({k,n:['New template','نیا ٹیمپلیٹ'],i:'grid',bc:0,ex:0,mode:['Simple sale by piece','پیس کے حساب سے'],st:['General items','عمومی'],un:'pcs',sp:['Everything optional','سب اختیاری'],cnt:0});S.tpk=k;S.anote='New template created. Name it, then publish.';draw(true)},
+ pubtpl:()=>{S.tv[S.tpk]=(S.tv[S.tpk]||0)+1;S.anote='Published. Shops get it on their next sync.';draw(true)}});
+const _tog=A.tog;
+A.tog=a=>{if(a.startsWith('rc:')){S.rc[a.slice(3)]=!S.rc[a.slice(3)];return draw(true)}if(a.startsWith('t:')){const c=CATS.find(x=>x.k===S.tpk);const k=a.slice(2);c[k]=c[k]?0:1;S.anote='Draft saved. Publish to send it to shops.';return draw(true)}return _tog(a)};
+Object.assign(A,{
+ os:a=>{S.os=a;draw(true)},
+ bout:a=>{S.buyOut=a;draw(true)},
+ buygo:()=>{S.buy='processing';draw(true);setTimeout(()=>{const o=S.buyOut;if(o==='success'){S.sub={st:S.ctx==='onboard'?'trial':'active',plan:S.plan};S.buy='done'}else if(o==='pending')S.buy='pending';else S.buy=o==='cancel'?'cancel':'fail';if(S.screen==='pay-plan')draw(false)},1500)},
+ retry:()=>{S.buy='sheet';draw(false)},
+ manage:()=>toast(S.os==='ios'?T('Opens iPhone Settings, Subscriptions','آئی فون سیٹنگز، سبسکرپشنز کھلے گا'):T('Opens Google Play, Subscriptions','گوگل پلے، سبسکرپشنز کھلے گا')),
+ chg:()=>{S.ctx='change';go('plan')},resub:()=>{S.ctx='renew';go('plan')},
+ restore:()=>{if(S.sub.st==='expired'||S.sub.st==='hold')S.sub.st='active';draw(true);toast(T('Purchases restored. Your plan is active.','خریداری بحال۔ آپ کا پلان فعال ہے۔'))},
+ substate:a=>{S.sub.st=a;draw(true)},
+ evf:a=>{S.evf=a;draw(true)},
+ ovr:a=>{const r=shop();if(a==='susp'){if(r.st!=='Suspended')r.prev=r.st;r.st='Suspended'}else if(r.st==='Suspended')r.st=r.prev||'Active';r.ovr=a;S.anote=a==='comp'?r.n+' has 30 days of complimentary access. No store purchase needed.':a==='susp'?r.n+' suspended. Data kept, app is read-only.':r.n+' follows its store subscription again.';draw(true)}});
+document.addEventListener('click',e=>{const el=e.target.closest('[data-act],[data-go]');if(!el||el.disabled)return;
+ const act=el.dataset.act,go_=el.dataset.go;if(go_)go(go_);if(act&&A[act])A[act](el.dataset.arg)});
+addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h&&h!==S.screen&&(SC[h]||h.startsWith('admin-'))){S.screen=h;draw(false)}});
+document.body.insertAdjacentHTML('afterbegin',sprite);
+{const h=location.hash.slice(1);if(h&&(SC[h]||h.startsWith('admin-')))S.screen=h}
+draw(false);
+</script>
