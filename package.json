@@ -1,0 +1,11 @@
+{
+  "name": "dukaan",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dukaan: multi-tenant mobile POS for local shops in Pakistan",
+  "scripts": {
+    "setup": "git config core.hooksPath .githooks",
+    "bump": "node scripts/bump-version.mjs",
+    "check": "npm --prefix apps/mobile run typecheck && npm --prefix apps/mobile test && node --test scripts"
+  }
+}

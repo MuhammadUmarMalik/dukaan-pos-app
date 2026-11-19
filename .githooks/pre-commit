@@ -1,0 +1,9 @@
+#!/bin/sh
+# Blocks secrets from being committed. Enable with: npm run setup
+bad=$(git diff --cached --name-only --diff-filter=ACM | grep -E '(^|/)\.env(\.|$)|\.(jks|keystore|p8|p12|key|mobileprovision)$|google-services\.json$|GoogleService-Info\.plist$' | grep -v '\.env\.example$')
+if [ -n "$bad" ]; then
+  echo "Refusing to commit secret-looking files:" >&2
+  echo "$bad" >&2
+  echo "Remove them from the commit (git restore --staged <file>). See RULES.md." >&2
+  exit 1
+fi
