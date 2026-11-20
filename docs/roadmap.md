@@ -1,5 +1,7 @@
 # POS SaaS (Shopkeeper Mobile App + Super-Admin Panel) — Plan v1
 
+> **Backend changed:** Firebase (Auth, Firestore, Cloud Functions) replaces Supabase Postgres, see [ADR 0007](decisions/0007-firebase.md). Sections below that mention Supabase, Postgres, RLS or SQL describe the original plan and are kept for history; the app-side plans (offline-first, entitlements, store billing, templates) still apply.
+
 ## 1. What we sell
 Monthly/yearly subscription to local shopkeepers (Pakistan-style: Urdu + English, khata culture, cash-heavy, flaky internet).
 Each shop = one tenant. Shopkeeper app (React Native, Android first) + Super-admin web panel (for you).

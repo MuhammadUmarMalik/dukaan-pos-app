@@ -1,9 +1,10 @@
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
-import { PRODUCTS } from '@/data/seed';
 import { rs } from '@/lib/money';
 import { cartTotals, useCart } from '@/state/cart';
+import { useBooks } from '@/state/books';
+import { useProducts } from '@/state/products';
 import { useSettings } from '@/state/settings';
 import { radius, space, useRtl, useT, useTokens } from '@/theme';
 import { Icon } from '@/ui/icons';
@@ -18,11 +19,15 @@ export default function Sell() {
   const discount = useCart((s) => s.discount);
   const add = useCart((s) => s.add);
   const flags = useSettings((s) => s.flags);
+  const products = useProducts((s) => s.items);
+  const held = useBooks((s) => s.held.length);
   const [q, setQ] = useState('');
   const { total } = cartTotals({ lines, discount });
-  const count = lines.reduce((a, l) => a + l.qty, 0);
-  const list = PRODUCTS.filter((p) => (p.name + p.ur + p.code).toLowerCase().includes(q.trim().toLowerCase()));
+  const count = lines.length;
+  const readOnly = useSettings((s) => s.sub.status === 'hold' || s.sub.status === 'expired');
+  const list = products.filter((p) => !p.archived && (p.name + p.ur + p.codes.join(' ')).toLowerCase().includes(q.trim().toLowerCase()));
 
+  if (readOnly) return <Redirect href="/paywall" />; // the server enforces read-only too; this only saves a failed sale
   return (
     <View style={{ flex: 1, backgroundColor: tk.bg }}>
       <Screen bottom={96}>
@@ -34,20 +39,21 @@ export default function Sell() {
               style={{ flex: 1, height: '100%', color: tk.fg, fontSize: 15, textAlign: rtl ? 'right' : 'left', fontFamily: rtl ? 'NotoNaskhArabic_400Regular' : 'Geist_400Regular' }} />
           </Row>
           {flags.barcode ? (
-            <Pressable accessibilityRole="button" accessibilityLabel={t('Scan', 'اسکین')} style={{ width: 52, height: 52, borderRadius: radius.md, backgroundColor: tk.fg, alignItems: 'center', justifyContent: 'center' }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={t('Scan', 'اسکین')} onPress={() => router.push('/scan?from=sell')} style={{ width: 52, height: 52, borderRadius: radius.md, backgroundColor: tk.fg, alignItems: 'center', justifyContent: 'center' }}>
               <Icon name="scan" color="bg" />
             </Pressable>
           ) : null}
         </Row>
         <Row gap={8} wrap>
-          {[[t('All', 'سب'), true], [t('Flour and Rice', 'آٹا چاول'), false], [t('Oil', 'تیل'), false], [t('Dairy', 'ڈیری'), false]].map(([l, on]) => <Chip key={String(l)} label={String(l)} on={Boolean(on)} />)}
+          <Chip label={t('Weigh item', 'وزن کریں')} onPress={() => router.push('/weigh')} />
+          {held ? <Chip label={`${t('Held bills', 'روکے ہوئے بل')} ${held}`} onPress={() => router.push('/held')} /> : null}
         </Row>
         <Row gap={10} wrap align="stretch">
           {list.map((p) => {
             const n = lines.find((l) => l.productId === p.id)?.qty ?? 0;
             const low = p.stock <= p.min;
             return (
-              <Pressable key={p.id} accessibilityRole="button" accessibilityLabel={`${t(p.name, p.ur)}, ${rs(p.price)}`} onPress={() => add(p.id)}
+              <Pressable key={p.id} accessibilityRole="button" accessibilityLabel={`${t(p.name, p.ur)}, ${rs(p.price)}`} onPress={() => (p.unit === 'kg' ? router.push('/weigh') : add(p.id))}
                 style={({ pressed }) => ({ width: '48.5%', minHeight: 122, padding: 14, gap: 10, borderRadius: radius.lg, backgroundColor: tk.surface, borderWidth: n ? 2 : 1, borderColor: n ? tk.accent : tk.line, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
                 <Row justify="space-between">
                   <Avatar text={p.name.split(' ').map((w) => w[0]).slice(0, 2).join('')} tone="plain" />

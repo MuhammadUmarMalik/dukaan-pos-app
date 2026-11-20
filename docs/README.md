@@ -5,7 +5,7 @@
 | [roadmap.md](roadmap.md) | You want the phases, what is built and what is next. Also holds the original product plan and review notes. |
 | [product.md](product.md) | You need to know who it is for, what is in scope and what is not. |
 | [architecture.md](architecture.md) | You want the big picture: apps, data flow, multi-tenancy, offline. |
-| [database.md](database.md) | You touch `supabase/`: tables, access rules, server functions, sync. |
+| [decisions/0007-firebase.md](decisions/0007-firebase.md) | You touch data, rules or functions. |
 | [billing.md](billing.md) | You touch subscriptions: Google Play, App Store, entitlements. |
 | [frontend.md](frontend.md) | You touch `apps/mobile`: structure, tokens, Urdu/RTL, state. |
 | [testing.md](testing.md) | You need to know what to run and what each test covers. |

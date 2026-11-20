@@ -8,8 +8,6 @@ import { Icon } from '@/ui/icons';
 import { Badge, Button, Card, Chip, Col, Row, Text } from '@/ui/kit';
 import { OnbShell } from '@/ui/Onboarding';
 
-// ponytail: picking a plan only saves the choice. The store purchase sheet (Google Play Billing / StoreKit via RevenueCat,
-// docs/billing.md) needs a development build and the store products, so it lands with the billing phase.
 export default function PlanScreen() {
   const t = useT();
   const tk = useTokens();
@@ -45,8 +43,8 @@ export default function PlanScreen() {
           </Pressable>
         );
       })}
-      <Text v="xs" c="fg3">{t(`Prices shown by ${store} in your local currency. Sample pricing here.`, `${store} آپ کی کرنسی میں قیمت دکھاتا ہے۔ یہاں نمونہ قیمتیں ہیں۔`)}</Text>
-      <Button label={t('Start free trial', 'مفت ٹرائل شروع کریں')} onPress={() => { set({ onboarded: true }); router.replace('/(tabs)'); }} />
+      <Text v="xs" c="fg3">{t(`Prices shown by ${store} in your local currency. `, `${store} آپ کی کرنسی میں قیمت دکھاتا ہے۔ `)}</Text>
+      <Button label={t('Start free trial', 'مفت ٹرائل شروع کریں')} onPress={() => router.push('/pay-plan?ctx=onboard')} />
       <View style={{ height: 4 }} />
     </OnbShell>
   );
