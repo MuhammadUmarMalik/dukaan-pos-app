@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
+import { useBooks } from '@/state/books';
+import { useKhata } from '@/state/khata';
+import { useProducts } from '@/state/products';
 import { useSettings } from '@/state/settings';
 import { dark, light, type Tokens } from './tokens';
 
@@ -19,8 +22,14 @@ export function useT() {
   return useCallback((en: string, u: string) => (ur ? u : en), [ur]);
 }
 
+const stores = [useSettings.persist, useProducts.persist, useKhata.persist, useBooks.persist];
+const allHydrated = () => stores.every((s) => s.hasHydrated());
+
 export function useHydrated() {
-  const [ok, setOk] = useState(useSettings.persist.hasHydrated());
-  useEffect(() => useSettings.persist.onFinishHydration(() => setOk(true)), []);
+  const [ok, setOk] = useState(allHydrated());
+  useEffect(() => {
+    const off = stores.map((s) => s.onFinishHydration(() => setOk(allHydrated())));
+    return () => off.forEach((f) => f());
+  }, []);
   return ok;
 }

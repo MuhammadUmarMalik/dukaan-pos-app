@@ -1,8 +1,8 @@
 import { useRouter } from 'expo-router';
 import { Pressable, View } from 'react-native';
-import { CUSTOMERS } from '@/data/seed';
 import { rs } from '@/lib/money';
 import { cartTotals, useCart, type PayMode } from '@/state/cart';
+import { due, useKhata } from '@/state/khata';
 import { useSettings } from '@/state/settings';
 import { radius, useT, useTokens } from '@/theme';
 import { Icon, type IconName } from '@/ui/icons';
@@ -12,13 +12,14 @@ export default function Pay() {
   const t = useT();
   const tk = useTokens();
   const router = useRouter();
-  const { lines, discount, mode, received, customerId, set, complete } = useCart();
+  const { lines, discount, mode: m0, received, customerId, set, complete } = useCart();
+  const mode = m0 === 'split' ? 'cash' : m0;
   const nextBill = useSettings((s) => s.nextBill);
   const { total } = cartTotals({ lines, discount });
-  const customer = CUSTOMERS.find((c) => c.id === customerId);
+  const customer = useKhata((s) => s.parties.find((c) => c.id === customerId));
   const got = received ?? total;
   const needCustomer = mode === 'khata' && !customer;
-  const modes: { k: PayMode; label: string; icon: IconName }[] = [
+  const modes: { k: Exclude<PayMode, 'split'>; label: string; icon: IconName }[] = [
     { k: 'cash', label: t('Cash', 'نقد'), icon: 'cash' }, { k: 'jazz', label: 'JazzCash', icon: 'phone' },
     { k: 'easy', label: 'Easypaisa', icon: 'phone' }, { k: 'bank', label: t('Bank', 'بینک'), icon: 'bank' },
     { k: 'khata', label: t('Khata', 'کھاتہ'), icon: 'book' },
@@ -59,7 +60,7 @@ export default function Pay() {
       ) : mode === 'khata' ? (
         <Card>
           {customer ? (
-            <Col gap={4}><Text w={600}>{t(customer.name, customer.ur)}</Text><Text v="small" c="fg3" num>{t('Current due', 'موجودہ باقی')} {rs(customer.balance)} → {rs(customer.balance + total)}</Text></Col>
+            <Col gap={4}><Text w={600}>{t(customer.name, customer.ur)}</Text><Text v="small" c="fg3" num>{t('Current due', 'موجودہ باقی')} {rs(due(customer))} → {rs(due(customer) + total)}</Text></Col>
           ) : (
             <Row gap={12}>
               <View style={{ flex: 1 }}><Badge label={t('Customer needed', 'گاہک ضروری')} tone="red" /><Text v="small" c="fg3" style={{ marginTop: 6 }}>{t('Khata needs a customer name. Choose one in the cart.', 'کھاتے کے لیے گاہک چنیں۔')}</Text></View>
@@ -68,6 +69,7 @@ export default function Pay() {
           )}
         </Card>
       ) : null}
+      <Button kind="ghost" icon="pct" label={t('Split payment', 'ادائیگی تقسیم کریں')} onPress={() => router.push('/split')} />
       <Button label={t('Confirm and print', 'تصدیق اور پرنٹ')} disabled={needCustomer || got < total && mode === 'cash'}
         onPress={() => { complete(nextBill()); router.replace('/receipt'); }} />
     </Screen>

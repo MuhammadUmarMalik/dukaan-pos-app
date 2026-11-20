@@ -37,7 +37,7 @@ export default function Language() {
         <LangCard lang="en" title="English" hint="Left to right" />
         <LangCard lang="ur" title="اردو" hint="دائیں سے بائیں" />
       </Col>
-      <Button label={t('Continue', 'جاری رکھیں')} onPress={() => router.push('/onboarding/phone')} />
+      <Button label={t('Continue', 'جاری رکھیں')} onPress={() => router.push('/onboarding/account')} />
     </OnbShell>
   );
 }
