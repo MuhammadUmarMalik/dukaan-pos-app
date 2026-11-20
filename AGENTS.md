@@ -43,11 +43,11 @@ npm run bump -- patch|minor|major|x.y.z
 
 ## Working on a change
 
-1. Branch from `main`: `git switch -c feat/<scope>-<short>` (see `docs/git-workflow.md`).
+1. Features: branch from `develop` (`git switch -c feature/<name>`). Fixes: branch `fix/<name>` and merge it into `hot-fixes`. See `docs/git-workflow.md`.
 2. Make the change, with a test if it touches money, permissions, stock or sync.
 3. Run the checks above that apply.
 4. Update docs and `CHANGELOG.md` under `[Unreleased]`.
-5. Commit with a Conventional Commit message and open a pull request.
+5. Commit with a Conventional Commit message and open a pull request to `develop` (features, or `hot-fixes` for fixes). Never merge into `develop` or `main`, and never bump the version: the owner does that.
 
 ## Gotchas
 

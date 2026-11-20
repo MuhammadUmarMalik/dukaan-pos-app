@@ -5,6 +5,7 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 ## [Unreleased]
 
 ### Changed
+- Git flow: `main`, `develop`, `feature/*`, `fix/*` collected in `hot-fixes`. Features and `hot-fixes` reach `develop` by pull request; the owner merges `develop` into `main` and sets versions.
 - Backend is now Firebase instead of Supabase. The Postgres schema, RLS and tests were removed (history keeps them).
 
 ### Added

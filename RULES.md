@@ -35,6 +35,6 @@ Hard rules for everyone who changes this repo, people and AI agents alike. If a 
 
 ## Git
 
-20. `main` is always releasable. Work happens on short-lived branches and lands by squash-merged pull request.
-21. Branch names: `feat/…`, `fix/…`, `db/…`, `docs/…`, `chore/…`. Commit messages follow Conventional Commits (`feat(sell): add weight entry`). See `docs/git-workflow.md`.
-22. Never force-push `main`, never skip hooks, never commit `.env` files, keystores or certificates.
+20. `main` is always releasable and only receives `develop` (or an urgent store fix) by pull request. Features land in `develop` by squash-merged pull request; fixes collect in `hot-fixes`, which goes to `develop` by pull request. The owner merges into `main` and sets versions.
+21. Branch names: `feature/…` from `develop`, `fix/…` merged into `hot-fixes`. Commit messages follow Conventional Commits (`feat(sell): add weight entry`). See `docs/git-workflow.md`.
+22. Never force-push `main`, `develop` or `hot-fixes`, never skip hooks, never commit `.env` files, keystores or certificates.
