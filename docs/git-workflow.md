@@ -85,7 +85,12 @@ The `commit-msg` hook checks the format. Enable hooks once per clone: `npm run s
 - `feature/*` into `develop`: **squash** merge, delete the branch.
 - `hot-fixes` into `develop` and `develop` into `main`: **merge commit**, keep the branch.
 
-Recommended GitHub settings: protect `main`, `develop` and `hot-fixes` (require a pull request and the CI checks, block force pushes and deletion), and make `develop` the default branch so new pull requests target it.
+GitHub settings (set on the repository):
+
+- Default branch: `develop`, so new pull requests target it.
+- `main` and `develop`: pull request required, checks `mobile`, `scripts` and `pr-title` must pass, conversations resolved, no force pushes, no deletion. No approval count, because the owner reviews and merges.
+- `hot-fixes`: no force pushes and no deletion. Fixes are merged into it directly, so it does not require a pull request.
+- Merge methods: squash and merge commit. Rebase merge is off.
 
 ## Worktrees
 
