@@ -1,15 +1,17 @@
 import { useRouter } from 'expo-router';
 import { Pressable, View } from 'react-native';
-import { CUSTOMERS, PRODUCTS } from '@/data/seed';
 import { rs } from '@/lib/money';
 import { cartTotals, useCart, type Discount } from '@/state/cart';
+import { useBooks } from '@/state/books';
+import { useKhata } from '@/state/khata';
+import { useProducts } from '@/state/products';
 import { useT, useTokens } from '@/theme';
 import { Icon } from '@/ui/icons';
 import { Button, Card, Chip, Col, Hairline, IconButton, Row, Screen, Text } from '@/ui/kit';
 
 const same = (a: Discount, b: Discount) => a.kind === b.kind && a.value === b.value;
 
-function Stepper({ qty, onStep }: { qty: number; onStep: (d: number) => void }) {
+function Stepper({ qty, onStep }: { qty: number | string; onStep: (d: number) => void }) {
   const tk = useTokens();
   return (
     <Row gap={0} style={{ borderRadius: 12, backgroundColor: tk.surface2, borderWidth: 1, borderColor: tk.line }}>
@@ -23,7 +25,10 @@ function Stepper({ qty, onStep }: { qty: number; onStep: (d: number) => void }) 
 export default function Cart() {
   const t = useT();
   const router = useRouter();
-  const { lines, customerId, discount, step, clear, set } = useCart();
+  const { lines, customerId, discount, step, clear, set, hold } = useCart();
+  const held = useBooks((s) => s.held.length);
+  const customers = useKhata((s) => s.parties).filter((p) => p.kind === 'customer' && !p.archived);
+  const products = useProducts((s) => s.items);
   const { subtotal, discount: disc, total } = cartTotals({ lines, discount });
   const discounts: { d: Discount; label: string }[] = [
     { d: { kind: 'amount', value: 0 }, label: t('None', 'کوئی نہیں') },
@@ -40,14 +45,15 @@ export default function Cart() {
       </Row>
       <Card pad={0}>
         {lines.length ? lines.map((l, i) => {
-          const p = PRODUCTS.find((x) => x.id === l.productId)!;
+          const p = products.find((x) => x.id === l.productId)!;
+          const q = p.unit === 'kg' ? `${l.qty} kg` : l.qty;
           return (
             <View key={l.productId}>
               {i ? <Hairline /> : null}
               <Row gap={10} style={{ paddingHorizontal: 16, paddingVertical: 12, minHeight: 66 }}>
                 <View style={{ flex: 1 }}><Text w={500} numberOfLines={1}>{t(p.name, p.ur)}</Text><Text v="small" c="fg3" num>{rs(p.price)}</Text></View>
-                <Stepper qty={l.qty} onStep={(d) => step(l.productId, d)} />
-                <Text w={600} num style={{ minWidth: 72, textAlign: 'right' }}>{rs(p.price * l.qty)}</Text>
+                <Stepper qty={q} onStep={(d) => step(l.productId, p.unit === 'kg' ? d * 0.25 : d)} />
+                <Text w={600} num style={{ minWidth: 72, textAlign: 'right' }}>{rs(Math.round(p.price * l.qty))}</Text>
               </Row>
             </View>
           );
@@ -57,7 +63,7 @@ export default function Cart() {
         <Text v="label" c="fg3">{t('Customer', 'گاہک')}</Text>
         <Row gap={8} wrap>
           <Chip label={t('Walk-in', 'عام گاہک')} on={customerId === null} onPress={() => set({ customerId: null })} />
-          {CUSTOMERS.slice(0, 4).map((c) => <Chip key={c.id} label={t(c.name, c.ur)} on={customerId === c.id} onPress={() => set({ customerId: c.id })} />)}
+          {customers.slice(0, 6).map((c) => <Chip key={c.id} label={t(c.name, c.ur)} on={customerId === c.id} onPress={() => set({ customerId: c.id })} />)}
         </Row>
       </Col>
       <Col gap={8}>
@@ -72,7 +78,11 @@ export default function Cart() {
           <Row justify="space-between"><Text v="h2">{t('Total', 'کل')}</Text><Text v="title" num style={{ fontSize: 26 }}>{rs(total)}</Text></Row>
         </Col>
       </Card>
-      <Button label={`${t('Pay', 'ادائیگی')} ${rs(total)}`} disabled={!lines.length} onPress={() => router.push('/pay')} />
+      {held ? <Button kind="ghost" icon="pause" label={`${t('Held bills', 'روکے ہوئے بل')} (${held})`} onPress={() => router.push('/held')} /> : null}
+      <Row gap={10}>
+        <Button kind="sec" block={false} icon="pause" label={t('Hold', 'روکیں')} disabled={!lines.length} onPress={() => { hold(); router.push('/held'); }} />
+        <View style={{ flex: 1 }}><Button label={`${t('Pay', 'ادائیگی')} ${rs(total)}`} disabled={!lines.length} onPress={() => router.push('/pay')} /></View>
+      </Row>
     </Screen>
   );
 }

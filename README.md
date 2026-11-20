@@ -17,7 +17,6 @@ npm run typecheck && npm test
 Database tests (Windows, PostgreSQL 18 binaries, throwaway cluster):
 
 ```bash
-powershell -File supabase/tests/run-local.ps1
 ```
 
 Open `design/prototype.html` in a browser for the approved clickable design.
@@ -27,7 +26,7 @@ Open `design/prototype.html` in a browser for the approved clickable design.
 | Path | What |
 |---|---|
 | `apps/mobile` | Expo app |
-| `supabase/` | Migrations, seed, database tests |
+| `firebase/` | Firestore Security Rules (deny all until features land) |
 | `design/` | UI prototype |
 | `docs/` | Architecture, database, billing, frontend, git workflow, versioning, decisions |
 

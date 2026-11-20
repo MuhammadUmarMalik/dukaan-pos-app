@@ -1,9 +1,9 @@
-// ponytail: seed data until the Supabase sync phase. Shapes match the database (paisa, ids), so the swap is a data source change.
-export type Product = { id: string; name: string; ur: string; price: number; cost: number; stock: number; min: number; code: string };
+// ponytail: seed data until the Firestore sync phase (paisa, ids), so the swap is a data source change.
+export type Product = { id: string; name: string; ur: string; unit: string; price: number; cost: number; stock: number; min: number; codes: string[]; expiry?: string; archived?: boolean };
 export type Customer = { id: string; name: string; ur: string; balance: number; area: string; last: string };
 
 const p = (id: string, name: string, ur: string, rupees: number, cost: number, stock: number, min: number, code: string): Product =>
-  ({ id, name, ur, price: rupees * 100, cost: cost * 100, stock, min, code });
+  ({ id, name, ur, unit: 'pcs', price: rupees * 100, cost: cost * 100, stock, min, codes: [code] });
 
 export const PRODUCTS: Product[] = [
   p('1', 'Atta 10kg', 'آٹا 10 کلو', 1450, 1320, 34, 15, '8961001000011'),
@@ -16,7 +16,13 @@ export const PRODUCTS: Product[] = [
   p('8', 'Biscuit Family Pack', 'بسکٹ فیملی پیک', 90, 76, 60, 20, '8961001000080'),
   p('9', 'Bath Soap', 'صابن', 120, 101, 3, 12, '8961001000097'),
   p('10', 'Salt 800g', 'نمک 800 گرام', 60, 48, 45, 10, '8961001000103'),
+  // Loose items: price is per kg, sold through Weigh item.
+  { ...p('11', 'Sugar loose', 'چینی کھلی', 155, 140, 40, 10, ''), unit: 'kg', codes: [] },
+  { ...p('12', 'Basmati Rice loose', 'باسمتی چاول کھلے', 370, 330, 60, 15, ''), unit: 'kg', codes: [] },
+  { ...p('13', 'Tomato', 'ٹماٹر', 120, 95, 25, 8, ''), unit: 'kg', codes: [] },
+  { ...p('14', 'Onion', 'پیاز', 90, 70, 30, 8, ''), unit: 'kg', codes: [] },
 ];
+PRODUCTS[6].expiry = new Date(Date.now() + 2 * 86_400_000).toISOString().slice(0, 10);
 
 const c = (id: string, name: string, ur: string, rupees: number, area: string, last: string): Customer =>
   ({ id, name, ur, balance: rupees * 100, area, last });
@@ -35,7 +41,7 @@ export type Category = {
   mode: [string, string]; starter: [string, string]; units: string; special: [string, string]; count: number;
 };
 
-// Mirrors supabase/seed.sql business_templates. The server copy wins once synced.
+// Business templates; the server copy wins once synced.
 export const CATEGORIES: Category[] = [
   { k: 'grocery', n: ['Grocery', 'کریانہ'], icon: 'cart', barcode: true, expiry: true, mode: ['Sell by piece, kg and carton', 'پیس، کلو اور کارٹن میں فروخت'], starter: ['Rice, Oil, Sugar, Tea, Dairy, Snacks', 'چاول، تیل، چینی، چائے، ڈیری، اسنیکس'], units: 'pcs · kg · dozen · carton', special: ['Supplier orders and reorder list', 'سپلائر آرڈر اور ری آرڈر فہرست'], count: 42 },
   { k: 'bakery', n: ['Bakery', 'بیکری'], icon: 'bread', barcode: false, expiry: true, mode: ['Sell by weight or piece', 'وزن یا پیس کے حساب سے فروخت'], starter: ['Bread, Cakes, Biscuits, Sweets, Snacks', 'بریڈ، کیک، بسکٹ، مٹھائی، اسنیکس'], units: 'pcs · kg · dozen · box', special: ['Quick-tap item grid with photos', 'تصویروں والا فوری ٹیپ گرڈ'], count: 28 },
@@ -55,3 +61,8 @@ export const PLANS: Record<'basic' | 'standard' | 'pro', PlanDef> = {
   standard: { n: ['Standard', 'اسٹینڈرڈ'], price: [900, 9000], feats: [['3 users', '3 صارف'], ['Unlimited products', 'لامحدود آئٹمز'], ['Reports and WhatsApp bills', 'رپورٹس اور واٹس ایپ بل']] },
   pro: { n: ['Pro', 'پرو'], price: [1500, 15000], feats: [['10 users', '10 صارف'], ['Online catalog link', 'آن لائن کیٹلاگ'], ['Excel export and backup', 'ایکسل ایکسپورٹ اور بیک اپ']] },
 };
+
+/** Cashier permissions shown on Staff and Add staff: key, English, Urdu. */
+export const PERMS: [string, string, string][] = [
+  ['profit', 'See profit and cost', 'منافع اور لاگت دیکھیں'], ['del', 'Delete or edit sales', 'فروخت حذف یا ایڈیٹ'], ['price', 'Give discounts', 'رعایت دیں'],
+];
