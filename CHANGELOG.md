@@ -8,6 +8,8 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 - Backend is now Firebase instead of Supabase. The Postgres schema, RLS and tests were removed (history keeps them).
 
 ### Added
+- Reports by category: sales, profit and loss, purchases, expenses, customers and khata (with aging), suppliers, stock (value, low, out of stock, expiring, not selling, movement), and daily, weekly and monthly closing. Every report has a day, week or month picker that can go back in time, and most export CSV.
+- Edit a customer's or supplier's details, and archive or restore them (entries are never deleted).
 - Sign-in with email and password (verified email required), Google and Apple through Firebase Authentication, with password reset. Session is kept in the phone Keychain/Keystore.
 - Firestore Security Rules that deny everything until features add rules, and ADR 0007.
 - All remaining shopkeeper screens from the prototype: khata ledger with record entry, WhatsApp reminders and statements; add customer or supplier; held bills, split payment and weigh item; stock, adjust stock and product detail; purchases, new purchase and purchase orders; expenses, day closing and sale returns; reports; staff and permissions; settings, printer and receipt designer; online catalog, loyalty, backup and export, help and alerts; subscription, store purchase and paywall.

@@ -6,7 +6,7 @@ import { balance, type Entry, type PartyKind } from '@/lib/books';
 import { newId } from './products';
 
 // ponytail: kept on the phone. In the sync phase entries are written by a Cloud Function (RULES.md #4) and this becomes a cache.
-export type Party = { id: string; kind: PartyKind; name: string; ur: string; phone: string; area: string; limit: number; entries: Entry[] };
+export type Party = { id: string; kind: PartyKind; name: string; ur: string; phone: string; area: string; limit: number; entries: Entry[]; archived?: boolean };
 
 const DAY = 86_400_000;
 const seed: Party[] = [
@@ -26,6 +26,10 @@ type S = {
   add: (p: Omit<Party, 'id' | 'entries'>, opening: number) => string;
   /** Append-only: mistakes are fixed with a reversing entry, never an edit (RULES.md #3). */
   entry: (partyId: string, e: Omit<Entry, 'id' | 'at'>) => void;
+  /** Name, phone, area and limit only. Money changes go through entries. */
+  update: (id: string, p: Partial<Pick<Party, 'name' | 'ur' | 'phone' | 'area' | 'limit'>>) => void;
+  /** Clients never delete (RULES.md #7): archiving hides the party and keeps every entry. */
+  archive: (id: string, archived: boolean) => void;
 };
 
 export const useKhata = create<S>()(
@@ -37,6 +41,8 @@ export const useKhata = create<S>()(
         set((s) => ({ parties: [...s.parties, { ...p, id, entries: opening ? [{ id: newId(), at: Date.now(), note: 'Opening balance', amount: opening }] : [] }] }));
         return id;
       },
+      update: (id, p) => set((s) => ({ parties: s.parties.map((x) => (x.id === id ? { ...x, ...p } : x)) })),
+      archive: (id, archived) => set((s) => ({ parties: s.parties.map((x) => (x.id === id ? { ...x, archived } : x)) })),
       entry: (partyId, e) => set((s) => ({
         parties: s.parties.map((p) => (p.id === partyId ? { ...p, entries: [...p.entries, { ...e, id: newId(), at: Date.now() }] } : p)),
       })),

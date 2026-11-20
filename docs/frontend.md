@@ -14,14 +14,15 @@ src/
     products        product-form, product-detail, scan, stock, adjust-stock
     khata           ledger/[id], add-party, receive, reminder, statement
     buying          purchases, new-purchase, po
-    money           expense, cash-close, reports
+    money           expense, cash-close
+    reports/        hub, sales, profit, purchases, expenses, customers, suppliers, stock, closing (day, week, month)
     shop            staff, add-staff, settings, printer-settings, catalog, loyalty, backup, help, alerts
     billing         subscription, pay-plan, paywall
-  ui/             kit (Text, Row, Card, Button, Field...), parts (Header, Seg, Li, List, Stats, Keypad, Toast...), icons, TabBar, OnbShell
+  ui/             kit (Text, Row, Card, Button, Field...), parts (Header, Seg, Li, List, Stats, Keypad, Toast...), report (period picker, charts), icons, TabBar, OnbShell
   theme/          tokens (light, dark), useTokens, useT, useRtl
   state/          settings, products, khata, books (sales, held, purchases, expenses, returns, closings), cart, auth, scan
   data/           seed.ts (sample data and business templates)
-  lib/            money, product, books (khata signs, stock, weigh, reorder, cash), share (WhatsApp, call, share sheet), billing, auth, firebase
+  lib/            money, product, reports (periods, buckets, khata aging), books (khata signs, stock, weigh, reorder, cash), share (WhatsApp, call, share sheet), billing, auth, firebase
 ```
 
 ## Design system

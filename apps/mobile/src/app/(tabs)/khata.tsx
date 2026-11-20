@@ -5,7 +5,7 @@ import { rs } from '@/lib/money';
 import { due, lastAt, shortDate, useKhata } from '@/state/khata';
 import { radius, useRtl, useT, useTokens } from '@/theme';
 import { Icon } from '@/ui/icons';
-import { IconButton, Row, Screen, Text } from '@/ui/kit';
+import { Chip, IconButton, Row, Screen, Text } from '@/ui/kit';
 import { initials, Li, List, Seg, Stats } from '@/ui/parts';
 
 export default function Khata() {
@@ -16,9 +16,11 @@ export default function Khata() {
   const parties = useKhata((s) => s.parties);
   const [kind, setKind] = useState<'customer' | 'supplier'>('customer');
   const [q, setQ] = useState('');
+  const [arch, setArch] = useState(false);
+  const archivedCount = parties.filter((p) => p.kind === kind && p.archived).length;
   const get = parties.filter((p) => p.kind === 'customer').reduce((a, p) => a + Math.max(0, due(p)), 0);
   const pay = parties.filter((p) => p.kind === 'supplier').reduce((a, p) => a + Math.max(0, due(p)), 0);
-  const list = parties.filter((p) => p.kind === kind && (p.name + p.ur + p.phone).toLowerCase().includes(q.trim().toLowerCase()))
+  const list = parties.filter((p) => p.kind === kind && !!p.archived === arch && (p.name + p.ur + p.phone).toLowerCase().includes(q.trim().toLowerCase()))
     .sort((a, b) => due(b) - due(a));
   const tones = ['blue', 'grn', 'yel', 'acc', 'red'] as const;
   return (
@@ -34,6 +36,7 @@ export default function Khata() {
         <TextInput accessibilityLabel={t('Search', 'تلاش')} value={q} onChangeText={setQ} placeholder={t('Search name or phone', 'نام یا فون')} placeholderTextColor={tk.fg3}
           style={{ flex: 1, height: '100%', color: tk.fg, fontSize: 15, textAlign: rtl ? 'right' : 'left', fontFamily: rtl ? 'NotoNaskhArabic_400Regular' : 'Geist_400Regular' }} />
       </Row>
+      {archivedCount ? <Row><Chip label={arch ? t('Show active', 'فعال دکھائیں') : `${t('Archived', 'آرکائیو')} ${archivedCount}`} on={arch} onPress={() => setArch(!arch)} /></Row> : null}
       {list.length ? (
         <List>
           {list.map((p, i) => {

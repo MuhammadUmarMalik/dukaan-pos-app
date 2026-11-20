@@ -27,7 +27,7 @@ export default function Cart() {
   const router = useRouter();
   const { lines, customerId, discount, step, clear, set, hold } = useCart();
   const held = useBooks((s) => s.held.length);
-  const customers = useKhata((s) => s.parties).filter((p) => p.kind === 'customer');
+  const customers = useKhata((s) => s.parties).filter((p) => p.kind === 'customer' && !p.archived);
   const products = useProducts((s) => s.items);
   const { subtotal, discount: disc, total } = cartTotals({ lines, discount });
   const discounts: { d: Discount; label: string }[] = [
