@@ -6,10 +6,10 @@ flowchart LR
     UI[Screens] --> ST[Zustand stores]
     ST --> LDB[(Local database, planned)]
   end
-  Phone -->|JWT, RLS| SB[(Supabase Postgres)]
-  Phone -->|RPC: record_sale etc.| SB
+  Phone -->|ID token, Security Rules| SB[(Firebase: Auth + Firestore)]
+  Phone -->|callable: record sale etc.| SB
   Stores[Google Play / App Store] -->|notifications| API[Express API, planned]
-  API -->|service role| SB
+  API -->|Admin SDK| SB
   Admin[Admin panel, planned] --> API
 ```
 
@@ -18,13 +18,13 @@ flowchart LR
 | Piece | Status | Notes |
 |---|---|---|
 | Mobile app (`apps/mobile`) | Foundation built | Onboarding, Home, Sell to Receipt on seed data. Expo SDK 58, expo-router, Zustand. |
-| Database (`supabase/`) | Built and tested | Multi-tenant schema, RLS, entitlements, money functions. |
-| Express API | Planned | Store webhooks, admin API, exports, SMS credits. Uses the service-role key. |
+| Firebase (`firebase/`) | Auth wired, rules deny all | Firestore data model and Cloud Functions come next (ADR 0007). |
+| Express API | Planned | Store webhooks, admin API, exports, SMS credits. Uses the Admin SDK on the server only. |
 | Admin panel | Planned (prototype exists) | React + Vite, talks to the API. |
 
 ## Multi-tenancy
 
-Pooled: one database, every tenant table has `shop_id`. Row level security limits each user to the shops they belong to (`memberships`). Composite foreign keys `(shop_id, parent_id)` make cross-shop references impossible. Roles: owner, manager, cashier. Details in [database.md](database.md).
+Pooled: one Firebase project, every tenant document lives under `shops/{shopId}`. Security Rules limit each user to shops they are a member of. Roles: owner, manager, cashier. Details in [ADR 0007](decisions/0007-firebase.md).
 
 ## Offline-first (design)
 

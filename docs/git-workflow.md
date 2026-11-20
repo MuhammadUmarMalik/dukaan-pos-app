@@ -74,7 +74,7 @@ Normal case: `fix/…` branch from `main`, merge, release a patch. If `main` hol
 
 ## Environments (planned)
 
-Preview or development Supabase project for pull requests, staging for `main`, production for tags. Not set up yet.
+Development Firebase project for pull requests, staging for `main`, production for tags. Not set up yet.
 
 ## AI agents
 
