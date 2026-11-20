@@ -6,6 +6,6 @@
   "scripts": {
     "setup": "git config core.hooksPath .githooks",
     "bump": "node scripts/bump-version.mjs",
-    "check": "npm --prefix apps/mobile run typecheck && npm --prefix apps/mobile test && node --test scripts"
+    "check": "npm --prefix apps/mobile run typecheck && npm --prefix apps/mobile test && node --test scripts/*.test.mjs"
   }
 }
