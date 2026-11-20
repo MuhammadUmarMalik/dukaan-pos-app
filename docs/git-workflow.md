@@ -52,14 +52,29 @@ The `commit-msg` hook checks the format. Enable hooks once per clone: `npm run s
 - One concern per PR, ideally under about 400 changed lines.
 - The PR title is a Conventional Commit; it becomes the squash commit.
 - Fill in the template: what and why, how it was checked, screenshots for UI (English and Urdu), docs and changelog updated.
-- CI must pass: typecheck, unit tests, database tests, PR title check.
+- CI must pass: typecheck, unit tests, PR title check.
 - Merge with **squash**, delete the branch. History on `main` stays linear: one commit per change.
 
 Recommended GitHub settings for `main`: require a pull request, require the CI checks, require linear history, block force pushes and deletion, restrict direct pushes.
 
-## Migrations in branches
+## Worktrees
 
-Migration files are named by timestamp. If two branches add migrations, the later timestamp runs later. If a rebase leaves your migration older than one already on `main`, rename your file with a new timestamp. Never edit a migration that has landed on `main`; add a new one.
+Work on two branches at once without stashing: one folder per branch, all sharing one repository.
+
+```
+E:/POS-mobile-app                      main (or the branch under review)
+E:/POS-mobile-app-worktrees/<branch>   one folder per extra branch
+```
+
+- New: `git worktree add ../POS-mobile-app-worktrees/firestore-backend -b feat/firestore-backend main`
+- Each worktree needs its own `npm install` in `apps/mobile` and its own `apps/mobile/.env` (copy it; it is git-ignored).
+- A branch can be checked out in only one worktree at a time.
+- When the branch is merged: `git worktree remove ../POS-mobile-app-worktrees/<branch>` and `git branch -d <branch>`.
+- `git worktree list` shows them all.
+
+## Firestore rules and functions in branches
+
+Rules and Cloud Functions deploy from `main` only. Data shapes change by adding fields, never by reinterpreting old ones (RULES.md #5), so two branches can change them side by side; resolve conflicts in `firebase/firestore.rules` by keeping both sets of rules and their tests.
 
 ## Releases
 
