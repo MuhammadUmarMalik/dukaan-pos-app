@@ -5,9 +5,8 @@
 ## How it was checked
 
 - [ ] `npm run typecheck` and `npm test` in `apps/mobile`
-- [ ] `supabase/tests/run-local.ps1` (if `supabase/` changed)
 - [ ] Looked at it in English and Urdu (right-to-left), light and dark (if UI changed)
-- [ ] Not run / needs a device or a real Supabase project: <!-- say which -->
+- [ ] Not run / needs a device or a real Firebase project: <!-- say which -->
 
 ## Checklist
 

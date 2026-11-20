@@ -4,6 +4,17 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ## [Unreleased]
 
+### Changed
+- Git flow: `main`, `develop`, `feature/*`, `fix/*` collected in `hot-fixes`. Features and `hot-fixes` reach `develop` by pull request; the owner merges `develop` into `main` and sets versions.
+- Backend is now Firebase instead of Supabase. The Postgres schema, RLS and tests were removed (history keeps them).
+
+### Added
+- Sign-in with email and password (verified email required), Google and Apple through Firebase Authentication, with password reset. Session is kept in the phone Keychain/Keystore.
+- Firestore Security Rules that deny everything until features add rules, and ADR 0007.
+- All remaining shopkeeper screens from the prototype: khata ledger with record entry, WhatsApp reminders and statements; add customer or supplier; held bills, split payment and weigh item; stock, adjust stock and product detail; purchases, new purchase and purchase orders; expenses, day closing and sale returns; reports; staff and permissions; settings, printer and receipt designer; online catalog, loyalty, backup and export, help and alerts; subscription, store purchase and paywall.
+- Sales now go to a local history and to the customer's khata; stock changes keep a movement log. Book-keeping rules (khata signs, stock adjustment, weighing, reorder, cash expected) have unit tests.
+- Product add and edit, barcode scan (camera on phone, typed code everywhere), barcode search in Sell and Items.
+
 ## [0.1.0] - 2026-11-19
 
 First foundation. Not a store release.

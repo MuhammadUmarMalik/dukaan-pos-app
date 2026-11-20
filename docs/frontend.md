@@ -7,15 +7,21 @@ Expo SDK 58, expo-router, React 19, TypeScript strict, Zustand, `react-native-sv
 ```
 src/
   app/            routes only (expo-router)
-    index.tsx       redirects to onboarding or tabs
-    onboarding/     language, phone, shop, category, setup, plan
+    index.tsx       redirects to sign-in, onboarding or tabs
+    onboarding/     language, account, shop, category, setup, plan, printer
     (tabs)/         home, sell, items, khata, more (custom tab bar)
-    cart.tsx pay.tsx receipt.tsx   sale flow, above the tabs
-  ui/             Text, Row, Col, Card, Button, Chip, Badge, Field, Toggle, Avatar, Icon, TabBar, OnbShell
+    sale            cart, pay, split, weigh, held, receipt, returns
+    products        product-form, product-detail, scan, stock, adjust-stock
+    khata           ledger/[id], add-party, receive, reminder, statement
+    buying          purchases, new-purchase, po
+    money           expense, cash-close, reports
+    shop            staff, add-staff, settings, printer-settings, catalog, loyalty, backup, help, alerts
+    billing         subscription, pay-plan, paywall
+  ui/             kit (Text, Row, Card, Button, Field...), parts (Header, Seg, Li, List, Stats, Keypad, Toast...), icons, TabBar, OnbShell
   theme/          tokens (light, dark), useTokens, useT, useRtl
-  state/          settings (persisted), cart
-  data/           seed.ts (sample data, same shapes as the database)
-  lib/            money.ts (+ test)
+  state/          settings, products, khata, books (sales, held, purchases, expenses, returns, closings), cart, auth, scan
+  data/           seed.ts (sample data and business templates)
+  lib/            money, product, books (khata signs, stock, weigh, reorder, cash), share (WhatsApp, call, share sheet), billing, auth, firebase
 ```
 
 ## Design system
@@ -30,7 +36,7 @@ Tokens in `src/theme/tokens.ts` mirror `design/prototype.html`: cool graphite ne
 
 ## State
 
-Zustand stores. `settings` is persisted (language, theme, shop profile, category, flags, plan, device code, bill counter). `cart` holds the current sale and the last completed sale. Lists will move to the local database in the sync phase.
+Zustand stores, persisted on the phone: `settings` (language, theme, shop, plan, switches, receipt design, staff, printer name, local subscription status), `products` (items and an append-only movement log), `khata` (customers and suppliers with append-only entries; balance is the sum), `books` (sales history, held bills, purchases, expenses, returns, day closings). `cart` holds the current sale. In the sync phase money writes become Cloud Function calls (RULES.md #4) and these stores become caches.
 
 ## Money
 
@@ -43,6 +49,14 @@ Zustand stores. `settings` is persisted (language, theme, shop profile, category
 3. Check English and Urdu, light and dark, in `npx expo start --web`.
 4. If it handles money or permissions, add a test next to the logic.
 
-## Not built yet
+## Works on the phone only, for now
 
-Local database and sync, Supabase auth and data, product add/edit and barcode scan, khata ledger and payments, reports, printing (ESC/POS over Bluetooth), store purchases. Each needs a development build or Supabase and is tracked in `roadmap.md`.
+Every prototype screen is built. These parts finish on another app or need the backend or a development build, and the screen says so instead of pretending:
+
+- **Printing**: the printer name is saved; Bluetooth search and ESC/POS printing need a native module.
+- **Store purchases**: `lib/billing.ts` returns `unavailable`; Google Play Billing and StoreKit come with the billing phase. Nothing is ever marked paid on the phone. Subscription status is local and starts as a 14-day trial.
+- **WhatsApp, calls, exports**: real, through `wa.me`, `tel:` and the share sheet (CSV text, no PDF yet).
+- **Online catalog, cloud backup, staff sign-in, app lock PIN**: switches are saved; the behaviour needs Firebase.
+- **Reports, cash closing, alerts**: computed from what this phone recorded (last 500 sales).
+
+Not built: local database and sync, Firestore rules and Cloud Functions, admin panel (`apps/admin`).

@@ -2,7 +2,7 @@
 
 ## Product version
 
-[Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. The version lives in the root `package.json`, mirrored by `apps/mobile/package.json` and `apps/mobile/app.json` (`expo.version`). Change it only with `npm run bump`.
+[Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. The version lives in the root `package.json`, mirrored by `apps/mobile/package.json` and `apps/mobile/app.json` (`expo.version`). Change it only with `npm run bump`. Only the owner bumps the version, on `develop`, just before merging `develop` into `main` (see [git-workflow.md](git-workflow.md)).
 
 - **0.y.z** until the first public store release. During 0.x, MINOR may include breaking changes.
 - **1.0.0** is the first release in the Play Store.
@@ -26,11 +26,11 @@ Android `versionCode` and iOS `buildNumber` are not the product version. They co
 
 [Keep a Changelog](https://keepachangelog.com) format in `CHANGELOG.md`. Every pull request that changes behavior adds a line under `[Unreleased]` in `Added`, `Changed`, `Fixed`, `Removed` or `Security`.
 
-## Database
+## Backend (Firebase)
 
-- Migrations: `YYYYMMDDHHMMSS_name.sql`, forward-only, never edited after they land on `main`.
+- Firestore rules and Cloud Functions deploy from `main` only.
 - Phones in the field run older app versions for weeks. Keep the server backward compatible with the previous two releases: add a new function or column instead of changing a signature or meaning; remove old ones only after a minimum app version has moved past them.
-- A minimum supported app version will live in a server config table so old apps can be asked to update (planned).
+- A minimum supported app version will live in a server config document so old apps can be asked to update (planned).
 - Business templates have an integer `version`. Publishing an edit creates a new version; shops stay pinned to theirs until they sync.
 
 ## API

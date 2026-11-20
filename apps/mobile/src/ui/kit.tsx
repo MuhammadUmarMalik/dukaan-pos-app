@@ -107,7 +107,7 @@ export function IconButton({ icon, onPress, label, dot, size = 44 }: { icon: Ico
 export function Chip({ label, on, onPress }: { label: string; on?: boolean; onPress?: () => void }) {
   const tk = useTokens();
   return (
-    <Pressable accessibilityRole="button" accessibilityState={{ selected: !!on }} onPress={onPress}
+    <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ selected: !!on }} onPress={onPress}
       style={{ height: 36, paddingHorizontal: 14, borderRadius: 18, justifyContent: 'center', backgroundColor: on ? tk.fg : tk.surface, borderWidth: on ? 0 : 1, borderColor: tk.line }}>
       <Text v="small" c={on ? 'bg' : 'fg2'}>{label}</Text>
     </Pressable>
@@ -121,16 +121,17 @@ export function Badge({ label, tone = 'acc' }: { label: string; tone?: 'acc' | '
   return <View style={{ height: 22, paddingHorizontal: 9, borderRadius: 11, backgroundColor: bg, justifyContent: 'center', alignSelf: 'flex-start' }}><Text v="xs" c={fg} w={500}>{label}</Text></View>;
 }
 
-export function Field({ label, value, onChangeText, placeholder, keyboardType }: { label: string; value: string; onChangeText: (s: string) => void; placeholder?: string; keyboardType?: 'default' | 'phone-pad' | 'numeric' }) {
+export function Field({ label, value, onChangeText, placeholder, keyboardType, error, autoCapitalize, secure }: { label: string; value: string; onChangeText: (s: string) => void; placeholder?: string; keyboardType?: 'default' | 'phone-pad' | 'numeric' | 'decimal-pad' | 'email-address'; error?: string; secure?: boolean; autoCapitalize?: 'none' | 'sentences' | 'words' }) {
   const tk = useTokens();
   const ur = useRtl();
   return (
     <View style={{ gap: 7 }}>
       <Text v="small" c="fg2" w={500}>{label}</Text>
       <TextInput
-        accessibilityLabel={label} value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor={tk.fg3} keyboardType={keyboardType}
-        style={{ height: 52, borderRadius: radius.md - 1, paddingHorizontal: 14, backgroundColor: tk.surface, borderWidth: 1, borderColor: tk.line2, color: tk.fg, fontSize: 15, textAlign: ur ? 'right' : 'left', fontFamily: ur ? 'NotoNaskhArabic_400Regular' : 'Geist_400Regular' }}
+        accessibilityLabel={label} value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor={tk.fg3} keyboardType={keyboardType} autoCapitalize={autoCapitalize} secureTextEntry={secure} autoCorrect={secure ? false : undefined}
+        style={{ height: 52, borderRadius: radius.md - 1, paddingHorizontal: 14, backgroundColor: tk.surface, borderWidth: error ? 2 : 1, borderColor: error ? tk.redFg : tk.line2, color: tk.fg, fontSize: 15, textAlign: ur ? 'right' : 'left', fontFamily: ur ? 'NotoNaskhArabic_400Regular' : 'Geist_400Regular' }}
       />
+      {error ? <Text v="small" c="redFg" accessibilityLiveRegion="polite">{error}</Text> : null}
     </View>
   );
 }
